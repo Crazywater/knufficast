@@ -5,7 +5,7 @@ Knufficast Podcast client (Podcatcher) for Android
 
 License
 ==========
-Copyright 2012 crazywater
+Copyright 2012 Crazywater
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
