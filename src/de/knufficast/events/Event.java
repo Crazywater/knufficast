@@ -21,5 +21,4 @@ package de.knufficast.events;
  * @author crazywater
  */
 public interface Event {
-
 }
