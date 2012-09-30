@@ -28,6 +28,7 @@ import de.knufficast.logic.Configuration;
 import de.knufficast.logic.ImageCache;
 import de.knufficast.logic.model.Queue;
 import de.knufficast.player.QueuePlayer;
+import de.knufficast.util.LockManager;
 import de.knufficast.util.file.InternalFileUtil;
 import de.knufficast.watchers.ConfigurationSaver;
 import de.knufficast.watchers.DownloadRemover;
@@ -42,6 +43,7 @@ import de.knufficast.watchers.UpdaterService;
 public class App extends Application {
   private static final String CONFIG_FILENAME = "knuffiCastConfiguration";
   private Configuration configuration;
+  private final LockManager lockManager = new LockManager(this);
   private final EventBus eventBus = new EventBus();
   private final ImageCache imageCache = new ImageCache(this, eventBus);
   private final ConfigurationSaver configurationSaver = new ConfigurationSaver(
@@ -64,6 +66,7 @@ public class App extends Application {
     queuePlayer = new QueuePlayer(getQueue(), this, eventBus);
     initUpdater();
     imageCache.init();
+    lockManager.init();
     configurationSaver.register();
     downloadWatcher.register();
     downloadRemover.register();
@@ -109,6 +112,13 @@ public class App extends Application {
    */
   public ImageCache getImageCache() {
     return imageCache;
+  }
+
+  /**
+   * Returns the global {@link LockManager}.
+   */
+  public LockManager getLockManager() {
+    return lockManager;
   }
 
   /**

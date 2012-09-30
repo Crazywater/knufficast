@@ -25,6 +25,7 @@ import java.net.URL;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Pair;
+import de.knufficast.App;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.Callback;
 import de.knufficast.util.file.ExternalFileUtil;
@@ -59,6 +60,7 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
 
   @Override
   protected Boolean doInBackground(String... urlAndFilename) {
+    App.get().getLockManager().lockWifi(urlAndFilename);
     try {
       if (urlAndFilename.length != 2) {
         throw new IllegalArgumentException("Wrong number of download arguments");
@@ -125,6 +127,8 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
     } catch (Exception e) {
       e.printStackTrace();
       return false;
+    } finally {
+      App.get().getLockManager().unlockWifi(urlAndFilename);
     }
   }
 

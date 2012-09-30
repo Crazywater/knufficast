@@ -22,6 +22,7 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.os.PowerManager;
 import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Episode.PlayState;
 import de.knufficast.util.Callback;
@@ -41,6 +42,7 @@ public class Player {
   public Player(Context context) {
     this.context = context;
     mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+    mediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
   }
 
   /**
