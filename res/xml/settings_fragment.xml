@@ -1,0 +1,46 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory
+        android:key="pref_key_updater"
+        android:title="@string/pref_updater" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_key_update_needs_wifi"
+            android:summary="@string/pref_summary_update_needs_wifi"
+            android:title="@string/pref_title_update_needs_wifi" />
+        
+        <ListPreference
+            android:defaultValue="3600"
+            android:dialogTitle="@string/pref_dialog_title_update_freq"
+            android:entries="@array/entries_list_update_freq"
+            android:entryValues="@array/entryvalues_list_update_freq"
+            android:key="pref_key_update_freq"
+            android:summary="@string/pref_summary_update_freq"
+            android:title="@string/pref_title_update_freq" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_key_auto_enqueue"
+            android:summary="@string/pref_summary_auto_enqueue"
+            android:title="@string/pref_title_auto_enqueue" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="pref_key_downloads"
+        android:title="@string/pref_downloads" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_key_download_needs_wifi"
+            android:summary="@string/pref_summary_download_needs_wifi"
+            android:title="@string/pref_title_download_needs_wifi" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_key_download_auto_retry"
+            android:summary="@string/pref_summary_download_auto_retry"
+            android:title="@string/pref_title_download_auto_retry" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_key_auto_delete"
+            android:summary="@string/pref_summary_auto_delete"
+            android:title="@string/pref_title_auto_delete" />
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="entries_list_update_freq"> <!-- Keep in sync with entryvalues_list_update_freq -->
+        <item>@string/min_15</item>
+        <item>@string/hour_1</item>
+        <item>@string/hour_6</item>
+        <item>@string/day_1</item>
+        <item>@string/week_1</item>
+    </string-array>
+    <string-array name="entryvalues_list_update_freq"> <!-- Keep in sync with entries_list_update_freq -->
+        <item>900</item>
+        <item>3600</item>
+        <item>21600</item>
+        <item>86400</item>
+        <item>604800</item>
+    </string-array>
+</resources>
