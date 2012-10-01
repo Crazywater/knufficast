@@ -20,7 +20,6 @@ import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -198,7 +197,6 @@ public class QueueFragment extends BaseFragment implements
     setPlayButtonPlaying(App.get().getPlayer().isPlaying());
 
     // also used to request a PlayerProgressEvent
-    Log.d("QueueFragment", "Request progress");
     App.get().getPlayer().prepareAsync();
   }
 
