@@ -27,6 +27,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
@@ -109,6 +110,15 @@ public class QueueAdapter extends ArrayAdapter<Episode> {
       episodeIcon = imageCache.getResource(feed.getImgUrl());
     }
     imageView.setImageDrawable(episodeIcon);
+
+    ProgressBar progressBar = (ProgressBar) row
+        .findViewById(R.id.queue_episode_list_progress_bar);
+    if (episode.getDownloadState() != DownloadState.FINISHED) {
+      progressBar.setMax((int) episode.getTotalBytes());
+      progressBar.setProgress((int) episode.getDownloadedBytes());
+    } else {
+      progressBar.setVisibility(View.GONE);
+    }
     return row;
   }
 

@@ -29,6 +29,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
+import de.knufficast.events.EpisodeDownloadProgressEvent;
 import de.knufficast.events.EpisodeDownloadStateEvent;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
@@ -61,12 +62,7 @@ public class QueueFragment extends BaseFragment implements
   private final Listener<QueueChangedEvent> queueUpdateListener = new Listener<QueueChangedEvent>() {
     @Override
     public void onEvent(QueueChangedEvent event) {
-      getActivity().runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          updateQueue();
-        }
-      });
+      redrawQueue();
     }
   };
   private final Listener<PlayerStateChangeEvent> playerStateListener = new Listener<PlayerStateChangeEvent>() {
@@ -90,12 +86,18 @@ public class QueueFragment extends BaseFragment implements
   private final Listener<EpisodeDownloadStateEvent> episodeDownloadStateListener = new Listener<EpisodeDownloadStateEvent>() {
     @Override
     public void onEvent(EpisodeDownloadStateEvent event) {
-      getActivity().runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          updateQueue();
+      redrawQueue();
+    }
+  };
+  private final Listener<EpisodeDownloadProgressEvent> episodeDownloadProgressListener = new Listener<EpisodeDownloadProgressEvent>() {
+    @Override
+    public void onEvent(EpisodeDownloadProgressEvent event) {
+      for (Episode ep : ourQueue) {
+        if (ep.getIdentifier().equals(event.getIdentifier())) {
+          redrawQueue();
+          break;
         }
-      });
+      }
     }
   };
 
@@ -159,6 +161,8 @@ public class QueueFragment extends BaseFragment implements
     eventBus.addListener(PlayerProgressEvent.class, playerProgressListener);
     eventBus.addListener(EpisodeDownloadStateEvent.class,
         episodeDownloadStateListener);
+    eventBus.addListener(EpisodeDownloadProgressEvent.class,
+        episodeDownloadProgressListener);
 
     // add listeners to user events
     playButton.setOnClickListener(new OnClickListener() {
@@ -231,6 +235,15 @@ public class QueueFragment extends BaseFragment implements
     }
   }
 
+  private void redrawQueue() {
+    getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        episodesAdapter.notifyDataSetChanged();
+      }
+    });
+  }
+
   private String formatTime(int milliseconds) {
     int hours = milliseconds / (1000 * 60 * 60);
     milliseconds %= 1000 * 60 * 60;
@@ -252,6 +265,8 @@ public class QueueFragment extends BaseFragment implements
     eventBus.removeListener(PlayerProgressEvent.class, playerProgressListener);
     eventBus.removeListener(EpisodeDownloadStateEvent.class,
         episodeDownloadStateListener);
+    eventBus.removeListener(EpisodeDownloadProgressEvent.class,
+        episodeDownloadProgressListener);
   }
 
   /**
