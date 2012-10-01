@@ -34,6 +34,7 @@ import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Episode.PlayState;
 import de.knufficast.util.Callback;
 import de.knufficast.util.file.ExternalFileUtil;
+import de.knufficast.util.file.PodcastFileUtil;
 
 /**
  * An audio player for episodes, based on the android {@link MediaPlayer}.
@@ -69,7 +70,7 @@ public class PlayerService extends Service {
     if (episode != null) {
       try {
         FileInputStream inputStream;
-        inputStream = new ExternalFileUtil(getApplicationContext())
+        inputStream = new PodcastFileUtil(getApplicationContext())
             .read(episode.getFileLocation());
         mediaPlayer.setDataSource(inputStream.getFD());
         mediaPlayer.prepareAsync();

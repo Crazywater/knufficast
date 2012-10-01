@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * 
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,12 +30,12 @@ import de.knufficast.events.EpisodeDownloadStateEvent;
  */
 public class Episode implements Serializable {
   private static final long serialVersionUID = 1L;
-  private String feedUrl;
-  private String title;
-  private String imgUrl;
-  private String description;
-  private String dataUrl;
-  private String guid;
+  private final String feedUrl;
+  private final String title;
+  private final String imgUrl;
+  private final String description;
+  private final String dataUrl;
+  private final String guid;
 
   private volatile DownloadState downloadState = DownloadState.NONE;
   private int seekLocation;
@@ -46,6 +46,8 @@ public class Episode implements Serializable {
 
   private long downloadedBytes;
   private long totalBytes;
+
+  private String downloadedFileName;
 
   public Episode(String feedUrl, String title, String imgUrl,
       String description, String dataUrl, String guid) {
@@ -240,6 +242,14 @@ public class Episode implements Serializable {
     Episode casted = (Episode) other;
 
     return casted.getIdentifier().equals(getIdentifier());
+  }
+
+  public String getDownloadFileName() {
+    return downloadedFileName;
+  }
+
+  public void setDownloadedFileName(String downloadedFileName) {
+    this.downloadedFileName = downloadedFileName;
   }
 
   /**

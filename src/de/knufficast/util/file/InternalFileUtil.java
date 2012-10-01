@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * 
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,12 +30,13 @@ import android.content.Context;
  * 
  */
 public class InternalFileUtil implements FileUtil {
-  private Context context;
+  private final Context context;
 
   public InternalFileUtil(Context context) {
     this.context = context;
   }
 
+  @Override
   public FileOutputStream write(String filename, boolean append)
       throws FileNotFoundException {
     int mode = Context.MODE_PRIVATE;
@@ -45,10 +46,12 @@ public class InternalFileUtil implements FileUtil {
     return context.openFileOutput(filename, mode);
   }
 
+  @Override
   public File resolveFile(String filename) {
     return new File(context.getFilesDir(), filename);
   }
 
+  @Override
   public FileInputStream read(String filename) throws FileNotFoundException {
     return context.openFileInput(filename);
   }

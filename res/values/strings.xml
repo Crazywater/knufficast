@@ -56,4 +56,6 @@
     <string name="hour_6">every 6 hours</string>
     <string name="day_1">every day</string>
     <string name="week_1">every week</string>
+    
+    <string name="download_started">Download started</string>
 </resources>
