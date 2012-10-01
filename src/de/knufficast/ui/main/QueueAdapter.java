@@ -22,8 +22,10 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -71,7 +73,7 @@ public class QueueAdapter extends ArrayAdapter<Episode> {
   }
 
   @Override
-  public View getView(int position, View convertView, ViewGroup parent) {
+  public View getView(final int position, View convertView, ViewGroup parent) {
     View row = convertView;
 
     if (row == null) {
@@ -84,6 +86,12 @@ public class QueueAdapter extends ArrayAdapter<Episode> {
 
     final Episode episode = data.get(position);
 
+    row.setOnTouchListener(new OnTouchListener() {
+      @Override
+      public boolean onTouch(View v, MotionEvent event) {
+        return presenter.onTouch(position, v, event);
+      }
+    });
     row.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -114,6 +122,7 @@ public class QueueAdapter extends ArrayAdapter<Episode> {
     ProgressBar progressBar = (ProgressBar) row
         .findViewById(R.id.queue_episode_list_progress_bar);
     if (episode.getDownloadState() != DownloadState.FINISHED) {
+      progressBar.setVisibility(View.VISIBLE);
       progressBar.setMax((int) episode.getTotalBytes());
       progressBar.setProgress((int) episode.getDownloadedBytes());
     } else {
@@ -139,5 +148,6 @@ public class QueueAdapter extends ArrayAdapter<Episode> {
    */
   public interface Presenter {
     void episodeClicked(Episode episode);
+    boolean onTouch(int position, View view, MotionEvent event);
   }
 }

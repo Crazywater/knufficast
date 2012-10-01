@@ -20,6 +20,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -58,6 +59,8 @@ public class QueueFragment extends BaseFragment implements
   private TextView elapsedTime;
   private TextView totalTime;
 
+  private boolean updatingDownloads = true;
+
   private final Listener<QueueChangedEvent> queueUpdateListener = new Listener<QueueChangedEvent>() {
     @Override
     public void onEvent(QueueChangedEvent event) {
@@ -91,10 +94,12 @@ public class QueueFragment extends BaseFragment implements
   private final Listener<EpisodeDownloadProgressEvent> episodeDownloadProgressListener = new Listener<EpisodeDownloadProgressEvent>() {
     @Override
     public void onEvent(EpisodeDownloadProgressEvent event) {
-      for (Episode ep : ourQueue) {
-        if (ep.getIdentifier().equals(event.getIdentifier())) {
-          redrawQueue();
-          break;
+      if (updatingDownloads) {
+        for (Episode ep : ourQueue) {
+          if (ep.getIdentifier().equals(event.getIdentifier())) {
+            redrawQueue();
+            break;
+          }
         }
       }
     }
@@ -234,6 +239,9 @@ public class QueueFragment extends BaseFragment implements
   }
 
   private void redrawQueue() {
+    Queue queue = App.get().getQueue();
+    ourQueue.clear();
+    ourQueue.addAll(queue.asList());
     getActivity().runOnUiThread(new Runnable() {
       @Override
       public void run() {
@@ -305,5 +313,22 @@ public class QueueFragment extends BaseFragment implements
     void seekTo(int progress);
     void moveEpisode(Episode episode, int to);
     void removeEpisode(Episode episode);
+  }
+
+  /*
+   * Ugly hack to make updating download status work with drag and drop...
+   * otherwise the redraws screw registering long presses :/
+   */
+  @Override
+  public boolean onTouch(int position, View v, MotionEvent event) {
+    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+      updatingDownloads = false;
+      return false;
+    } else if (event.getAction() == MotionEvent.ACTION_UP
+        || event.getAction() == MotionEvent.ACTION_CANCEL) {
+      updatingDownloads = true;
+      return false;
+    }
+    return false;
   }
 }
