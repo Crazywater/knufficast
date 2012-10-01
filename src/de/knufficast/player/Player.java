@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * 
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,10 +22,11 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.os.PowerManager;
 import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Episode.PlayState;
 import de.knufficast.util.Callback;
-import de.knufficast.util.file.ExternalFileUtil;
+import de.knufficast.util.file.PodcastFileUtil;
 
 /**
  * An audio player for episodes, based on the android {@link MediaPlayer}.
@@ -41,6 +42,7 @@ public class Player {
   public Player(Context context) {
     this.context = context;
     mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+    mediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
   }
 
   /**
@@ -56,8 +58,8 @@ public class Player {
     this.episode = episode;
     mediaPlayer.reset();
     if (episode != null) {
-      FileInputStream inputStream = new ExternalFileUtil(context).read(episode
-          .getFileLocation());
+      FileInputStream inputStream = new PodcastFileUtil(context).read(episode
+          .getDownloadFileName());
       mediaPlayer.setDataSource(inputStream.getFD());
       mediaPlayer.prepare();
       int seekLocation = episode.getSeekLocation();

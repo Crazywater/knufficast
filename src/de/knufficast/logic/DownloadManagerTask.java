@@ -9,7 +9,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Environment;
+import android.text.Html;
+import android.widget.Toast;
 import de.knufficast.App;
+import de.knufficast.R;
 import de.knufficast.logic.model.Episode;
 import de.knufficast.util.BooleanCallback;
 
@@ -44,12 +47,13 @@ public class DownloadManagerTask {
         .parse(episode.getDataUrl()))
         .setAllowedNetworkTypes(networkTypesMask)
         .setAllowedOverRoaming(false)
-        .setNotificationVisibility(
-            DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setTitle(episode.getTitle())
-        .setDescription(episode.getDescription().substring(0, 50) + "...")
+        .setDescription(Html.fromHtml(episode.getDescription()).toString())
         .setDestinationInExternalFilesDir(context,
             Environment.DIRECTORY_PODCASTS, episode.getFileLocation()));
+
+    Toast.makeText(context, R.string.download_started, Toast.LENGTH_LONG)
+        .show();
   }
 
   BroadcastReceiver onComplete = new BroadcastReceiver() {

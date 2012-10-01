@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * 
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,9 +52,12 @@ public class MainActivity extends FragmentActivity implements
   private static final int FEEDS_TAB = 1;
 
   /**
-   * The {@link android.support.v4.view.PagerAdapter} that will provide fragments for each of the
-   * sections. We use a {@link android.support.v4.app.FragmentPagerAdapter} derivative, which will
-   * keep every loaded fragment in memory. If this becomes too memory intensive, it may be best
+   * The {@link android.support.v4.view.PagerAdapter} that will provide
+   * fragments for each of the
+   * sections. We use a {@link android.support.v4.app.FragmentPagerAdapter}
+   * derivative, which will
+   * keep every loaded fragment in memory. If this becomes too memory intensive,
+   * it may be best
    * to switch to a {@link android.support.v4.app.FragmentStatePagerAdapter}.
    */
   private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -77,9 +80,11 @@ public class MainActivity extends FragmentActivity implements
     feedsFragment = new FeedsFragment();
 
     setContentView(R.layout.activity_main);
-    // Create the adapter that will return a fragment for each of the three primary sections
+    // Create the adapter that will return a fragment for each of the three
+    // primary sections
     // of the app.
-    mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+    mSectionsPagerAdapter = new SectionsPagerAdapter(
+        getSupportFragmentManager());
 
     // Set up the action bar.
     final ActionBar actionBar = getActionBar();
@@ -91,24 +96,26 @@ public class MainActivity extends FragmentActivity implements
     mViewPager.setAdapter(mSectionsPagerAdapter);
 
     // When swiping between different sections, select the corresponding tab.
-    // We can also use ActionBar.Tab#select() to do this if we have a reference to the
+    // We can also use ActionBar.Tab#select() to do this if we have a reference
+    // to the
     // Tab.
-    mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-      @Override
-      public void onPageSelected(int position) {
-        actionBar.setSelectedNavigationItem(position);
-      }
-    });
+    mViewPager
+        .setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+          @Override
+          public void onPageSelected(int position) {
+            actionBar.setSelectedNavigationItem(position);
+          }
+        });
 
     // For each of the sections in the app, add a tab to the action bar.
     for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
-      // Create a tab with text corresponding to the page title defined by the adapter.
-      // Also specify this Activity object, which implements the TabListener interface, as the
+      // Create a tab with text corresponding to the page title defined by the
+      // adapter.
+      // Also specify this Activity object, which implements the TabListener
+      // interface, as the
       // listener for when this tab is selected.
-      actionBar.addTab(
-          actionBar.newTab()
-          .setText(mSectionsPagerAdapter.getPageTitle(i))
-          .setTabListener(this));
+      actionBar.addTab(actionBar.newTab()
+          .setText(mSectionsPagerAdapter.getPageTitle(i)).setTabListener(this));
     }
 
     try {
@@ -146,8 +153,10 @@ public class MainActivity extends FragmentActivity implements
   }
 
   @Override
-  public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-    // When the given tab is selected, switch to the corresponding page in the ViewPager.
+  public void onTabSelected(ActionBar.Tab tab,
+      FragmentTransaction fragmentTransaction) {
+    // When the given tab is selected, switch to the corresponding page in the
+    // ViewPager.
     mViewPager.setCurrentItem(tab.getPosition());
   }
 
@@ -168,12 +177,15 @@ public class MainActivity extends FragmentActivity implements
   }
 
   /**
-   * A {@link FragmentPagerAdapter} that returns a fragment corresponding to one of the primary
+   * A {@link FragmentPagerAdapter} that returns a fragment corresponding to one
+   * of the primary
    * sections of the app.
    */
   public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-    BaseFragment[] tabs = { queueFragment, feedsFragment };
+    BaseFragment[] tabs = {
+        queueFragment, feedsFragment
+    };
 
     public SectionsPagerAdapter(FragmentManager fm) {
       super(fm);
@@ -206,7 +218,8 @@ public class MainActivity extends FragmentActivity implements
   public void episodeClicked(Episode episode) {
     Intent intent = new Intent(this, EpisodeDetailActivity.class);
     intent.putExtra(FeedDetailActivity.FEED_URL_INTENT, episode.getFeedUrl());
-    intent.putExtra(EpisodeDetailActivity.EPISODE_GUID_INTENT, episode.getGuid());
+    intent.putExtra(EpisodeDetailActivity.EPISODE_GUID_INTENT,
+        episode.getGuid());
     startActivity(intent);
   }
 
