@@ -70,6 +70,11 @@ public class EventBus {
    */
   public <T extends Event> void fireEvent(T event) {
     Class<?> eventClass = event.getClass();
+    if (eventClass.equals(PlayerProgressEvent.class)) {
+      PlayerProgressEvent ev = (PlayerProgressEvent) event;
+      Log.d("PlayerProgressEvent",
+          "fired: " + ev.getProgress() + "," + ev.getTotal());
+    }
     Set<Listener<?>> ourListeners = listeners.get(eventClass);
     if (ourListeners != null) {
       for (Listener<?> listener : ourListeners) {

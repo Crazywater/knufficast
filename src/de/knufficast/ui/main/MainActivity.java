@@ -15,8 +15,6 @@
  ******************************************************************************/
 package de.knufficast.ui.main;
 
-import java.io.IOException;
-
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
@@ -110,13 +108,6 @@ public class MainActivity extends FragmentActivity implements
           .setText(mSectionsPagerAdapter.getPageTitle(i))
           .setTabListener(this));
     }
-
-    try {
-      queuePlayer.prepare();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
   }
 
   @Override
@@ -137,6 +128,12 @@ public class MainActivity extends FragmentActivity implements
   public void onStop() {
     App.get().save();
     super.onStop();
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    queuePlayer.releaseIfNotPlaying();
   }
 
   @Override
