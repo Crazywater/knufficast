@@ -20,6 +20,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -35,9 +36,7 @@ import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.events.PlayerStateChangeEvent;
 import de.knufficast.events.QueueChangedEvent;
 import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Episode.DownloadState;
 import de.knufficast.logic.model.Queue;
-import de.knufficast.player.QueuePlayer;
 import de.knufficast.ui.DnDListView;
 
 /**
@@ -66,7 +65,6 @@ public class QueueFragment extends BaseFragment implements
         @Override
         public void run() {
           updateQueue();
-          updateDisabledControls();
         }
       });
     }
@@ -83,6 +81,7 @@ public class QueueFragment extends BaseFragment implements
       getActivity().runOnUiThread(new Runnable() {
         @Override
         public void run() {
+          setControlsEnabled(event.getTotal() > 0);
           setSeekbar(event.getProgress(), event.getTotal());
         }
       });
@@ -95,7 +94,6 @@ public class QueueFragment extends BaseFragment implements
         @Override
         public void run() {
           updateQueue();
-          updateDisabledControls();
         }
       });
     }
@@ -155,8 +153,6 @@ public class QueueFragment extends BaseFragment implements
 
     list.setListener(dndListener);
 
-    QueuePlayer player = App.get().getPlayer();
-
     // add listeners to the eventbus
     eventBus.addListener(QueueChangedEvent.class, queueUpdateListener);
     eventBus.addListener(PlayerStateChangeEvent.class, playerStateListener);
@@ -193,12 +189,13 @@ public class QueueFragment extends BaseFragment implements
 
     // set initial state correctly
     updateQueue();
+    setControlsEnabled(false);
     list.setAdapter(episodesAdapter);
-    updateDisabledControls();
-    setPlayButtonPlaying(player.isPlaying());
-    if (controlsEnabled()) {
-      setSeekbar(player.getCurrentProgress(), player.getCurrentDuration());
-    }
+    setPlayButtonPlaying(App.get().getPlayer().isPlaying());
+
+    // also used to request a PlayerProgressEvent
+    Log.d("QueueFragment", "Request progress");
+    App.get().getPlayer().prepareAsync();
   }
 
   /**
@@ -268,21 +265,14 @@ public class QueueFragment extends BaseFragment implements
   }
 
   /**
-   * Disables the controls if the queue is empty or the first element is not
-   * fully downloaded.
+   * Disables or enables the controls (play/pause, seekbar)
    */
-  private void updateDisabledControls() {
-    boolean enabled = controlsEnabled();
+  private void setControlsEnabled(boolean enabled) {
     playButton.setEnabled(enabled);
     seekBar.setEnabled(enabled);
     int visibility = enabled ? View.VISIBLE : View.GONE;
     elapsedTime.setVisibility(visibility);
     totalTime.setVisibility(visibility);
-  }
-
-  private boolean controlsEnabled() {
-    return !ourQueue.isEmpty()
-        && ourQueue.get(0).getDownloadState() == DownloadState.FINISHED;
   }
 
   @Override
