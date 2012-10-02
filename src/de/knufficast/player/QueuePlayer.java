@@ -227,7 +227,6 @@ public class QueuePlayer {
       play();
     } else {
       pause();
-      // setLockScreenStopped();
     }
   }
 
