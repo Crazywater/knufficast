@@ -208,7 +208,6 @@ public class QueueFragment extends BaseFragment implements
   /**
    * Transforms the button to a pause button (true) or play button (false).
    */
-  @SuppressWarnings("deprecation")
   public void setPlayButtonPlaying(boolean playing) {
     int id = playing ? android.R.drawable.ic_media_pause
         : android.R.drawable.ic_media_play;

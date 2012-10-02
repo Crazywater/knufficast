@@ -49,6 +49,8 @@ import de.knufficast.util.PollingThread;
  * top of the queue and removing the top upon completion. Also interacts with
  * the remote control (lock screen).
  * 
+ * It's rather ugly. Sorry about that. :/
+ * 
  * @author crazywater
  * 
  */
