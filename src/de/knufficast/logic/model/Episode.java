@@ -42,7 +42,7 @@ public class Episode implements Serializable {
 
   private PlayState playState;
 
-  private boolean isNew;
+  private boolean isNew = true;
 
   private long downloadedBytes;
   private long totalBytes;

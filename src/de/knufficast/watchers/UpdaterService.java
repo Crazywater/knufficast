@@ -130,7 +130,6 @@ public class UpdaterService extends IntentService {
         && lastModifiedTimestamp <= feed.getLastUpdated()) {
       needsUpdate = false;
     }
-
     if (needsUpdate) {
       List<Feed> feeds = new FeedDownloader().getFeeds(conn);
       config.mergeFeeds(feeds);
