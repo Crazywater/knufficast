@@ -211,7 +211,6 @@ public class QueueFragment extends BaseFragment implements
   public void setPlayButtonPlaying(boolean playing) {
     int id = playing ? android.R.drawable.ic_media_pause
         : android.R.drawable.ic_media_play;
-    // TODO: Transition to setBackground (requires newer API).
     playButton.setBackgroundDrawable(getView().getResources().getDrawable(id));
   }
 
