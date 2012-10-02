@@ -15,11 +15,18 @@
  ******************************************************************************/
 package de.knufficast.player;
 
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.drawable.BitmapDrawable;
+import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
+import android.media.RemoteControlClient;
+import android.media.RemoteControlClient.MetadataEditor;
 import android.os.IBinder;
+import de.knufficast.App;
 import de.knufficast.events.EpisodeDownloadStateEvent;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
@@ -27,8 +34,10 @@ import de.knufficast.events.PlayerErrorEvent;
 import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.events.PlayerStateChangeEvent;
 import de.knufficast.events.QueueChangedEvent;
+import de.knufficast.logic.ImageCache;
 import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Episode.DownloadState;
+import de.knufficast.logic.model.Feed;
 import de.knufficast.logic.model.Queue;
 import de.knufficast.player.PlayerService.PlayerBinder;
 import de.knufficast.util.Callback;
@@ -36,8 +45,9 @@ import de.knufficast.util.Function;
 import de.knufficast.util.PollingThread;
 
 /**
- * A wrapper around {@link PlayerService} that manages always playing what is on top of
- * the queue and removing the top upon completion.
+ * A wrapper around {@link PlayerService} that manages always playing what is on
+ * top of the queue and removing the top upon completion. Also interacts with
+ * the remote control (lock screen).
  * 
  * @author crazywater
  * 
@@ -49,6 +59,8 @@ public class QueuePlayer {
   private final Context context;
   private PlayerService player;
   private boolean shouldPlay;
+  private AudioManager audioManager;
+  private RemoteControlClient remoteControlClient;
 
   private final ServiceConnection playerConnection = new ServiceConnection() {
     @Override
@@ -118,6 +130,15 @@ public class QueuePlayer {
       pause();
     }
   };
+  private final AudioManager.OnAudioFocusChangeListener onAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+      if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+        remoteControlClient = null;
+        pause();
+      }
+    }
+  };
 
   private PollingThread<Integer> progressReporter;
 
@@ -167,10 +188,33 @@ public class QueuePlayer {
       int progress = 0;
       int total = 0;
       if (player.isPrepared()) {
+        updateLockScreenMetadata();
         progress = player.getCurrentPosition();
         total = player.getDuration();
       }
       eventBus.fireEvent(new PlayerProgressEvent(progress, total));
+    }
+    if (audioManager == null) {
+      audioManager = (AudioManager) context
+          .getSystemService(Context.AUDIO_SERVICE);
+    }
+  }
+
+  public void registerRemoteControl() {
+    if (remoteControlClient == null) {
+      ComponentName myEventReceiver = new ComponentName(
+          context.getPackageName(), MediaButtonReceiver.class.getName());
+      audioManager.registerMediaButtonEventReceiver(myEventReceiver);
+      // build the PendingIntent for the remote control client
+      Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+      mediaButtonIntent.setComponent(myEventReceiver);
+      // create and register the remote control client
+      PendingIntent mediaPendingIntent = PendingIntent.getBroadcast(context, 0,
+          mediaButtonIntent, 0);
+      remoteControlClient = new RemoteControlClient(mediaPendingIntent);
+      remoteControlClient
+          .setTransportControlFlags(RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE);
+      audioManager.registerRemoteControlClient(remoteControlClient);
     }
   }
 
@@ -179,32 +223,46 @@ public class QueuePlayer {
    * called on an unprepared player.
    */
   public void togglePlaying() {
-    if (player != null) {
-      if (!player.isPlaying()) {
-        play();
-      } else {
-        pause();
-      }
+    if (!player.isPlaying()) {
+      play();
+    } else {
+      pause();
+      // setLockScreenStopped();
     }
   }
 
-  private void play() {
+  public void play() {
+    if (player == null) {
+      return;
+    }
     shouldPlay = true;
+    registerRemoteControl();
     if (!queue.isEmpty() && player.hasEpisode()) {
-      if (progressListener != null) {
-        startProgressReporter();
+      int audioFocus = audioManager.requestAudioFocus(
+          onAudioFocusChangeListener, AudioManager.STREAM_MUSIC,
+          AudioManager.AUDIOFOCUS_GAIN);
+      if (audioFocus == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+        updateLockScreenMetadata();
+        if (progressListener != null) {
+          startProgressReporter();
+        }
+        player.play();
+        updateLockScreen();
+        eventBus.fireEvent(new PlayerStateChangeEvent(true));
       }
-      player.play();
-      eventBus.fireEvent(new PlayerStateChangeEvent(true));
     }
   }
 
-  private void pause() {
+  public void pause() {
+    if (player == null) {
+      return;
+    }
     shouldPlay = false;
     if (progressListener != null) {
       stopProgressReporter();
     }
     player.pause();
+    updateLockScreen();
     eventBus.fireEvent(new PlayerStateChangeEvent(false));
   }
 
@@ -226,7 +284,46 @@ public class QueuePlayer {
       player.seekTo(msec);
     }
   }
-  
+
+  private void updateLockScreen() {
+    if (remoteControlClient != null) {
+      if (player.isPlaying()) {
+        remoteControlClient
+            .setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
+      } else {
+        remoteControlClient
+            .setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
+      }
+    }
+  }
+
+  private void updateLockScreenMetadata() {
+    if (remoteControlClient != null) {
+      MetadataEditor editor = remoteControlClient.editMetadata(true);
+      Episode episode = queue.peek();
+      Feed feed = App.get().getConfiguration()
+          .getFeed(episode.getIdentifier().getFeedId());
+
+      ImageCache imageCache = App.get().getImageCache();
+      String imgUrl = episode.getImgUrl();
+      BitmapDrawable episodeIcon = imageCache.getResource(imgUrl);
+      if (episodeIcon.equals(imageCache.getDefaultIcon())) {
+        episodeIcon = imageCache.getResource(feed.getImgUrl());
+      }
+      editor.putBitmap(MetadataEditor.BITMAP_KEY_ARTWORK,
+          episodeIcon.getBitmap());
+
+      editor.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION,
+          player.getDuration());
+
+      editor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST,
+          feed.getTitle());
+      editor.putString(MediaMetadataRetriever.METADATA_KEY_TITLE,
+          episode.getTitle());
+      editor.apply();
+    }
+  }
+
   /**
    * Stops the player service and relinquishes all its resources, if it isn't
    * playing and still needs them.

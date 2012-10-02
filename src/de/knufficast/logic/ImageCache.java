@@ -47,12 +47,12 @@ public class ImageCache {
   private static final String IMAGECACHE_FILENAME = "imageCache-index";
 
   private final Map<String, String> urlToFile = new HashMap<String, String>();
-  private final Map<String, Drawable> imageMap = new HashMap<String, Drawable>();
+  private final Map<String, BitmapDrawable> imageMap = new HashMap<String, BitmapDrawable>();
   private final Set<String> unsuccessfulUrls = new HashSet<String>();
 
   private final Context context;
   private final EventBus eventBus;
-  private Drawable defaultIcon;
+  private BitmapDrawable defaultIcon;
 
   public ImageCache(Context context, EventBus eventBus) {
     this.context = context;
@@ -63,7 +63,7 @@ public class ImageCache {
    * Get a {@link Drawable} from a URL. Might return the default icon first and
    * fire an {@link NewImageEvent} later.
    */
-  public Drawable getResource(final String url) {
+  public BitmapDrawable getResource(final String url) {
     if (url == null || "".equals(url)) {
       return getDefaultIcon();
     }
@@ -95,7 +95,8 @@ public class ImageCache {
       Bitmap bitmap = BitmapFactory.decodeStream(new ExternalFileUtil(context)
           .read(filename));
       // bitmap = Bitmap.createScaledBitmap(bitmap, 128, 128, true);
-      Drawable drawable = new BitmapDrawable(context.getResources(), bitmap);
+      BitmapDrawable drawable = new BitmapDrawable(context.getResources(),
+          bitmap);
 
       imageMap.put(url, drawable);
       urlToFile.put(url, filename);
@@ -109,7 +110,9 @@ public class ImageCache {
    * Deferred initialization so we know that the call to getResources works
    */
   public void init() {
-    defaultIcon = context.getResources().getDrawable(R.drawable.logo);
+    Bitmap icon = BitmapFactory.decodeResource(context.getResources(),
+        R.drawable.logo);
+    defaultIcon = new BitmapDrawable(context.getResources(), icon);
   }
 
   public void save() {
@@ -156,7 +159,7 @@ public class ImageCache {
     unsuccessfulUrls.addAll(newUrls);
   }
 
-  public Drawable getDefaultIcon() {
+  public BitmapDrawable getDefaultIcon() {
     return defaultIcon;
   }
 }
