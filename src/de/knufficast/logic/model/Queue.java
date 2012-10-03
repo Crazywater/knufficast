@@ -25,6 +25,7 @@ import java.util.Set;
 import de.knufficast.App;
 import de.knufficast.events.QueueChangedEvent;
 import de.knufficast.events.QueuePoppedEvent;
+import de.knufficast.events.QueueRemovedEvent;
 
 /**
  * Represents the play queue.
@@ -86,6 +87,7 @@ public class Queue implements Serializable {
     }
     queue.remove(ep);
     App.get().getEventBus().fireEvent(new QueueChangedEvent(topChanged));
+    App.get().getEventBus().fireEvent(new QueueRemovedEvent(ep));
   }
 
   /**
@@ -122,6 +124,7 @@ public class Queue implements Serializable {
     Episode head = queue.iterator().next();
     queue.remove(head);
     App.get().getEventBus().fireEvent(new QueueChangedEvent(true));
+    App.get().getEventBus().fireEvent(new QueueRemovedEvent(head));
     App.get().getEventBus().fireEvent(new QueuePoppedEvent(head));
     return head;
   }

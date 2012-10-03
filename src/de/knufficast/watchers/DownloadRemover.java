@@ -19,11 +19,11 @@ import android.content.Context;
 import de.knufficast.App;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
-import de.knufficast.events.QueuePoppedEvent;
+import de.knufficast.events.QueueRemovedEvent;
 
 /**
- * A watcher that removes downloads when episodes are popped from the queue and
- * the user has set the option to auto-delete.
+ * A watcher that removes downloads when episodes are popped or deleted from the
+ * queue and the user has set the option to auto-delete.
  * 
  * @author crazywater
  * 
@@ -32,9 +32,9 @@ public class DownloadRemover {
   private final QueueDownloader queueDownloader;
   private final EventBus eventBus;
 
-  private final Listener<QueuePoppedEvent> queuePoppedListener = new Listener<QueuePoppedEvent>() {
+  private final Listener<QueueRemovedEvent> queueRemovedListener = new Listener<QueueRemovedEvent>() {
     @Override
-    public void onEvent(QueuePoppedEvent event) {
+    public void onEvent(QueueRemovedEvent event) {
       if (App.get().getConfiguration().autoDelete()) {
         queueDownloader.deleteDownload(event.getEpisode());
       }
@@ -47,10 +47,11 @@ public class DownloadRemover {
   }
 
   public void register() {
-    eventBus.addListener(QueuePoppedEvent.class, queuePoppedListener);
+    eventBus.addListener(QueueRemovedEvent.class, queueRemovedListener);
+
   }
 
   public void unregister() {
-    eventBus.removeListener(QueuePoppedEvent.class, queuePoppedListener);
+    eventBus.removeListener(QueueRemovedEvent.class, queueRemovedListener);
   }
 }
