@@ -51,6 +51,11 @@
     <string name="pref_summary_auto_delete">Automatically delete dequeued downloads</string>
     <string name="pref_title_download_needs_wifi">Download: WiFi only</string>
     <string name="pref_summary_download_needs_wifi">Download episodes only on WiFi</string>
+    <string name="pref_flattr">Flattr</string>
+    <string name="pref_summary_flattr_account">Log in to flattr&#8230;</string>
+    <string name="pref_title_flattr_account">Flattr account</string>
+    <string name="pref_flattr_account_dialog_login">Log in</string>
+    <string name="flattr_username_hint">Username</string>
     <string name="delete_feed_title">Really unsubscribe?</string>
     <string name="delete_feed_message">This will delete all information stored about this feed, including downloads, listening progress and enqueued episodes.</string>
     <string name="delete_feed_confirm">Yes</string>
