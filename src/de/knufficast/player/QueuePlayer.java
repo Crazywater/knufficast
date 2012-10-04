@@ -76,8 +76,8 @@ public class QueuePlayer {
   private final Callback<Integer> progressListener = new Callback<Integer>() {
     @Override
     public void call(Integer progress) {
-      eventBus
-          .fireEvent(new PlayerProgressEvent(progress, player.getDuration()));
+      eventBus.fireEvent(new PlayerProgressEvent(queue.peek(), progress, player
+          .getDuration()));
     }
   };
   private final Callback<Void> onCompletionCallback = new Callback<Void>() {
@@ -92,7 +92,8 @@ public class QueuePlayer {
     public void call(Void unused) {
       int progress = player.getCurrentPosition();
       int total = player.getDuration();
-      eventBus.fireEvent(new PlayerProgressEvent(progress, total));
+      eventBus
+          .fireEvent(new PlayerProgressEvent(queue.peek(), progress, total));
       if (shouldPlay) {
         play();
       }
@@ -167,6 +168,8 @@ public class QueuePlayer {
           playerConnection, Context.BIND_AUTO_CREATE);
       // prepareAsync is called again once the player is not null anymore
     } else {
+      int progress = 0;
+      int total = 0;
       if (!queue.isEmpty()) {
         Episode next = queue.peek();
         if (next.getDownloadState() == DownloadState.FINISHED) {
@@ -175,14 +178,14 @@ public class QueuePlayer {
           player.setEpisode(null);
           shouldPlay = false;
         }
+        if (player.isPrepared()) {
+          progress = player.getCurrentPosition();
+          total = player.getDuration();
+          next.setDuration(total);
+        }
       }
-      int progress = 0;
-      int total = 0;
-      if (player.isPrepared()) {
-        progress = player.getCurrentPosition();
-        total = player.getDuration();
-      }
-      eventBus.fireEvent(new PlayerProgressEvent(progress, total));
+      eventBus
+          .fireEvent(new PlayerProgressEvent(queue.peek(), progress, total));
     }
     if (audioManager == null) {
       audioManager = (AudioManager) context

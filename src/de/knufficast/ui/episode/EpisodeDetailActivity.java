@@ -28,6 +28,7 @@ import android.view.View.OnClickListener;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
@@ -35,13 +36,16 @@ import de.knufficast.events.EpisodeDownloadProgressEvent;
 import de.knufficast.events.EpisodeDownloadStateEvent;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
+import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Episode.DownloadState;
+import de.knufficast.logic.model.Episode.FlattrState;
 import de.knufficast.logic.model.Episode.PlayState;
 import de.knufficast.logic.model.Feed;
 import de.knufficast.logic.model.Queue;
 import de.knufficast.ui.feed.FeedDetailActivity;
 import de.knufficast.ui.main.MainActivity;
+import de.knufficast.util.TimeUtil;
 import de.knufficast.watchers.QueueDownloader;
 
 /**
@@ -58,10 +62,19 @@ public class EpisodeDetailActivity extends Activity {
   private Queue queue;
   private EventBus eventBus;
 
+  private final TimeUtil timeUtil = new TimeUtil();
+
   private WebView description;
   private TextView title;
-  private TextView downloadState;
+  private TextView episodeState;
   private ImageView icon;
+
+  private ProgressBar downloadProgress;
+  private ProgressBar listeningProgress;
+  private ProgressBar flattringProgress;
+  private TextView downloadProgressText;
+  private TextView listeningProgressText;
+  private TextView flattringProgressText;
 
   private Listener<EpisodeDownloadProgressEvent> downloadProgressListener = new Listener<EpisodeDownloadProgressEvent>() {
     @Override
@@ -71,7 +84,6 @@ public class EpisodeDetailActivity extends Activity {
       }
     }
   };
-
   private Listener<EpisodeDownloadStateEvent> downloadStateListener = new Listener<EpisodeDownloadStateEvent>() {
     @Override
     public void onEvent(EpisodeDownloadStateEvent event) {
@@ -80,6 +92,21 @@ public class EpisodeDetailActivity extends Activity {
           @Override
           public void run() {
             updateDownloadState();
+          }
+        });
+      }
+    }
+  };
+  private Listener<PlayerProgressEvent> playerProgressListener = new Listener<PlayerProgressEvent>() {
+    @Override
+    public void onEvent(final PlayerProgressEvent event) {
+      if (episode.equals(event.getEpisode())) {
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (episode.equals(event.getEpisode())) {
+              updatePlayingState(event.getProgress(), event.getTotal());
+            }
           }
         });
       }
@@ -112,7 +139,13 @@ public class EpisodeDetailActivity extends Activity {
     title = (TextView) findViewById(R.id.episode_title_text);
     description = (WebView) findViewById(R.id.episode_description_text);
     icon = (ImageView) findViewById(R.id.episode_icon);
-    downloadState = (TextView) findViewById(R.id.episode_download_state);
+    episodeState = (TextView) findViewById(R.id.episode_state);
+    downloadProgress = (ProgressBar) findViewById(R.id.episode_download_progress);
+    listeningProgress = (ProgressBar) findViewById(R.id.episode_listening_progress);
+    flattringProgress = (ProgressBar) findViewById(R.id.episode_flattring_progress);
+    downloadProgressText = (TextView) findViewById(R.id.episode_download_progress_text);
+    listeningProgressText = (TextView) findViewById(R.id.episode_listening_progress_text);
+    flattringProgressText = (TextView) findViewById(R.id.episode_flattring_progress_text);
 
     // make the background transparent
     description.setBackgroundColor(0);
@@ -131,6 +164,11 @@ public class EpisodeDetailActivity extends Activity {
         .addListener(EpisodeDownloadStateEvent.class, downloadStateListener);
     eventBus.addListener(EpisodeDownloadProgressEvent.class,
         downloadProgressListener);
+    eventBus.addListener(PlayerProgressEvent.class, playerProgressListener);
+
+    downloadProgress.setMax(100);
+    listeningProgress.setMax(100);
+    flattringProgress.setMax(100);
   }
 
   @Override
@@ -140,6 +178,7 @@ public class EpisodeDetailActivity extends Activity {
         downloadStateListener);
     eventBus.removeListener(EpisodeDownloadProgressEvent.class,
         downloadProgressListener);
+    eventBus.removeListener(PlayerProgressEvent.class, playerProgressListener);
   }
 
   @Override
@@ -194,6 +233,8 @@ public class EpisodeDetailActivity extends Activity {
         .getImgUrl();
     icon.setImageDrawable(App.get().getImageCache().getResource(imgUrl));
     updateDownloadState();
+    updatePlayingState(episode.getSeekLocation(), episode.getDuration());
+    updateFlattringState();
     updateButton();
   }
 
@@ -203,11 +244,54 @@ public class EpisodeDetailActivity extends Activity {
     return df.format(result);
   }
 
+  private void updatePlayingState(int played, int duration) {
+    String text = "";
+    int progress = 0;
+    PlayState state = episode.getPlayState();
+    if (state == PlayState.NONE) {
+      text = getString(R.string.playing_state_none);
+      progress = 0;
+    } else if (state == PlayState.STARTED_PLAYING) {
+      text = getString(R.string.playing_state_playing,
+          timeUtil.formatTime(played), timeUtil.formatTime(duration));
+      progress = (int) ((double) 100 * episode.getSeekLocation() / episode
+          .getDuration());
+    } else if (state == PlayState.FINISHED) {
+      text = getString(R.string.playing_state_finished_playing);
+      progress = 100;
+    }
+    if (state != PlayState.FINISHED) {
+      episodeState.setText(text);
+    }
+    setProgress(listeningProgress, listeningProgressText, progress);
+  }
+
+  private void updateFlattringState() {
+    int progress = 0;
+    String text = "";
+    if (episode.getFlattrState() == FlattrState.NONE) {
+      text = getString(R.string.flattring_state_none);
+      progress = 0;
+    } else if (episode.getFlattrState() == FlattrState.ENQUEUED) {
+      text = getString(R.string.flattring_state_enqueued);
+      progress = 50;
+    } else if (episode.getFlattrState() == FlattrState.FLATTRED) {
+      text = getString(R.string.flattring_state_flattred);
+      progress = 100;
+    }
+    setProgress(flattringProgress, flattringProgressText, progress);
+  }
+
   private void updateDownloadState() {
     DownloadState state = episode.getDownloadState();
     String text = "";
     String downloadStatus = " (" + toMegaBytes(episode.getDownloadedBytes())
         + "/" + toMegaBytes(episode.getTotalBytes()) + " MB)";
+    int progress = 0;
+    if (episode.getTotalBytes() > 0) {
+      progress = (int) (((double) 100 * episode
+          .getDownloadedBytes() / episode.getTotalBytes()));
+    }
     if (!episode.hasDownload()) {
       text = getString(R.string.download_state_no_download);
     } else if (state == DownloadState.NONE) {
@@ -217,11 +301,24 @@ public class EpisodeDetailActivity extends Activity {
     } else if (state == DownloadState.ERROR) {
       text = getString(R.string.download_state_error) + downloadStatus;
     } else if (state == DownloadState.FINISHED) {
-      text = getString(R.string.download_state_finished);
+      progress = 100;
     } else if (state == DownloadState.PAUSED) {
       text = getString(R.string.download_state_paused) + downloadStatus;
     }
-    downloadState.setText(text);
+    if (state != DownloadState.FINISHED) {
+      episodeState.setText(text);
+    }
+    setProgress(downloadProgress, downloadProgressText, progress);
+  }
+
+  private void setProgress(ProgressBar progressBar, TextView textView,
+      int progress) {
+    progressBar.setProgress(progress);
+    int color = getResources().getColor(android.R.color.tertiary_text_light);
+    if (progress == 100) {
+      color = getResources().getColor(android.R.color.holo_blue_dark);
+    }
+    textView.setTextColor(color);
   }
 
   private void updateButton() {

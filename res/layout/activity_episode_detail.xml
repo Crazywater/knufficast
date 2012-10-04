@@ -36,11 +36,61 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
-                android:id="@+id/episode_download_state"
-                android:layout_width="match_parent"
+                android:id="@+id/episode_state"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"/>
+
         </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="bottom" >
+
+        <ProgressBar
+            android:id="@+id/episode_download_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/episode_download_progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="downloaded"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <ProgressBar
+            android:id="@+id/episode_listening_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/episode_listening_progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="listened"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <ProgressBar
+            android:id="@+id/episode_flattring_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/episode_flattring_progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="flattred"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
     </LinearLayout>
 
     <ScrollView
@@ -51,8 +101,7 @@
         <WebView
             android:id="@+id/episode_description_text"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp" />
+            android:layout_height="wrap_content"/>
 
     </ScrollView>
 

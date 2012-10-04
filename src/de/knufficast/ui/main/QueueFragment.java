@@ -39,6 +39,7 @@ import de.knufficast.events.QueueChangedEvent;
 import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Queue;
 import de.knufficast.ui.DnDListView;
+import de.knufficast.util.TimeUtil;
 
 /**
  * Fragment for the "queue" tab in the main window.
@@ -58,6 +59,8 @@ public class QueueFragment extends BaseFragment implements
   private Button playButton;
   private TextView elapsedTime;
   private TextView totalTime;
+
+  private final TimeUtil timeUtil = new TimeUtil();
 
   private boolean updatingDownloads = true;
 
@@ -181,7 +184,7 @@ public class QueueFragment extends BaseFragment implements
           boolean fromUser) {
         if (fromUser) {
           // shortcut for immediate UI-response to update elapsed time
-          elapsedTime.setText(formatTime(progress));
+          elapsedTime.setText(timeUtil.formatTime(progress));
           presenter.seekTo(progress);
         }
       }
@@ -221,19 +224,8 @@ public class QueueFragment extends BaseFragment implements
   public void setSeekbar(int progress, int max) {
     seekBar.setMax(max);
     seekBar.setProgress(progress);
-    elapsedTime.setText(formatTime(progress));
-    totalTime.setText(formatTime(max));
-  }
-
-  /**
-   * Zero-pad integers if <10
-   */
-  private String pad(int toPad) {
-    if (toPad < 10) {
-      return "0" + toPad;
-    } else {
-      return "" + toPad;
-    }
+    elapsedTime.setText(timeUtil.formatTime(progress));
+    totalTime.setText(timeUtil.formatTime(max));
   }
 
   private void redrawQueue() {
@@ -246,19 +238,6 @@ public class QueueFragment extends BaseFragment implements
         episodesAdapter.notifyDataSetChanged();
       }
     });
-  }
-
-  private String formatTime(int milliseconds) {
-    int hours = milliseconds / (1000 * 60 * 60);
-    milliseconds %= 1000 * 60 * 60;
-    int minutes = milliseconds / (1000 * 60);
-    milliseconds %= 1000 * 60;
-    int seconds = milliseconds / 1000;
-    if (hours > 0) {
-      return hours + ":" + pad(minutes) + ":" + pad(seconds);
-    } else {
-      return minutes + ":" + pad(seconds);
-    }
   }
 
   @Override

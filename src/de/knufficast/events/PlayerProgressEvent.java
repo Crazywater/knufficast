@@ -15,6 +15,8 @@
  ******************************************************************************/
 package de.knufficast.events;
 
+import de.knufficast.logic.model.Episode;
+
 /**
  * An event that is fired after the player has played a while, to notify
  * listeners about the play progress.
@@ -24,10 +26,12 @@ package de.knufficast.events;
 public class PlayerProgressEvent implements Event {
   private final int progress;
   private final int total;
+  private final Episode episode;
 
-  public PlayerProgressEvent(int progress, int total) {
+  public PlayerProgressEvent(Episode episode, int progress, int total) {
     this.progress = progress;
     this.total = total;
+    this.episode = episode;
   }
 
   /**
@@ -42,5 +46,12 @@ public class PlayerProgressEvent implements Event {
    */
   public int getTotal() {
     return total;
+  }
+
+  /**
+   * Returns the episode being played back.
+   */
+  public Episode getEpisode() {
+    return episode;
   }
 }

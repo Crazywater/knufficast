@@ -38,7 +38,9 @@ public class Episode implements Serializable {
   private String guid;
 
   private volatile DownloadState downloadState = DownloadState.NONE;
+  private FlattrState flattrState = FlattrState.NONE;
   private int seekLocation;
+  private int duration;
 
   private PlayState playState;
 
@@ -99,6 +101,10 @@ public class Episode implements Serializable {
     return dataUrl;
   }
 
+  public FlattrState getFlattrState() {
+    return flattrState;
+  }
+
   /**
    * Create a new, mutable Episode.
    */
@@ -129,6 +135,13 @@ public class Episode implements Serializable {
   }
 
   /**
+   * Which state of flattring the episode is currently in.
+   */
+  public enum FlattrState {
+    NONE, ENQUEUED, FLATTRED
+  }
+
+  /**
    * Whether this episode is "new". Used to check if we have to add it to the
    * queue.
    */
@@ -145,6 +158,21 @@ public class Episode implements Serializable {
 
   public DownloadState getDownloadState() {
     return downloadState;
+  }
+
+  /**
+   * Sets the duration of this episode in milliseconds.
+   */
+  public void setDuration(int duration) {
+    this.duration = duration;
+  }
+
+  /**
+   * Gets the duration of this episode in milliseconds. Returns 0 if this
+   * episode has never been prepared by the QueuePlayer.
+   */
+  public int getDuration() {
+    return duration;
   }
 
   /**
