@@ -20,11 +20,9 @@
     <string name="download_state_none">Not downloaded</string>
     <string name="download_state_downloading">Downloading&#8230;</string>
     <string name="download_state_error">Error</string>
-    <string name="download_state_finished">Downloaded</string>
     <string name="download_state_paused">Paused</string>
-    <string name="playing_state_none">Nothing to download</string>
+    <string name="playing_state_none">Not listened to</string>
     <string name="playing_state_playing">Listened to %1$s of %2$s</string>
-    <string name="playing_state_finished_playing">Finished listening</string>
     <string name="flattring_state_none">Not flattred</string>
     <string name="flattring_state_enqueued">In flattr-queue&#8230;</string>
     <string name="flattring_state_flattred">flattred</string>

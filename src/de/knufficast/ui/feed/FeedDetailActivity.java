@@ -35,6 +35,7 @@ import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Feed;
 import de.knufficast.ui.episode.EpisodeDetailActivity;
 import de.knufficast.ui.main.MainActivity;
+import de.knufficast.ui.settings.SettingsActivity;
 
 /**
  * Activity that displays the details of a {@link Feed}, including the list of
@@ -84,6 +85,10 @@ public class FeedDetailActivity extends Activity implements
           | Intent.FLAG_ACTIVITY_NEW_TASK);
       startActivity(parentActivityIntent);
       finish();
+      return true;
+    case R.id.menu_settings:
+      Intent intent = new Intent(this, SettingsActivity.class);
+      startActivity(intent);
       return true;
     case R.id.menu_unsubscribe_feed:
       // fire "are you sure" dialog

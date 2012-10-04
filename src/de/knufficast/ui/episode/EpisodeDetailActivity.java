@@ -45,6 +45,7 @@ import de.knufficast.logic.model.Feed;
 import de.knufficast.logic.model.Queue;
 import de.knufficast.ui.feed.FeedDetailActivity;
 import de.knufficast.ui.main.MainActivity;
+import de.knufficast.ui.settings.SettingsActivity;
 import de.knufficast.util.TimeUtil;
 import de.knufficast.watchers.QueueDownloader;
 
@@ -211,6 +212,10 @@ public class EpisodeDetailActivity extends Activity {
       startActivity(parentActivityIntent);
       finish();
       return true;
+    case R.id.menu_settings:
+      Intent intent = new Intent(this, SettingsActivity.class);
+      startActivity(intent);
+      return true;
     case R.id.menu_delete_download:
       new QueueDownloader(getApplicationContext()).deleteDownload(episode);
       updateDownloadState();
@@ -257,7 +262,6 @@ public class EpisodeDetailActivity extends Activity {
       progress = (int) ((double) 100 * episode.getSeekLocation() / episode
           .getDuration());
     } else if (state == PlayState.FINISHED) {
-      text = getString(R.string.playing_state_finished_playing);
       progress = 100;
     }
     if (state != PlayState.FINISHED) {
