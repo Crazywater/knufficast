@@ -194,9 +194,7 @@ public class EpisodeDetailActivity extends Activity {
     DownloadState state = episode.getDownloadState();
     boolean downloaded = state == DownloadState.FINISHED
         || state == DownloadState.PAUSED || state == DownloadState.ERROR;
-    boolean listened = episode.getSeekLocation() > 0;
     menu.setGroupEnabled(R.id.menugroup_downloaded, downloaded);
-    menu.setGroupEnabled(R.id.menugroup_listened, listened);
     return true;
   }
 
@@ -219,10 +217,6 @@ public class EpisodeDetailActivity extends Activity {
     case R.id.menu_delete_download:
       new QueueDownloader(getApplicationContext()).deleteDownload(episode);
       updateDownloadState();
-      return true;
-    case R.id.menu_set_unlistened:
-      episode.setSeekLocation(0);
-      episode.setPlayState(PlayState.NONE);
       return true;
     }
     return super.onOptionsItemSelected(item);
