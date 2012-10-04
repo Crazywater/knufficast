@@ -15,18 +15,12 @@
  ******************************************************************************/
 package de.knufficast.player;
 
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
-import android.media.MediaMetadataRetriever;
-import android.media.RemoteControlClient;
-import android.media.RemoteControlClient.MetadataEditor;
 import android.os.IBinder;
-import de.knufficast.App;
 import de.knufficast.events.EpisodeDownloadStateEvent;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
@@ -34,10 +28,8 @@ import de.knufficast.events.PlayerErrorEvent;
 import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.events.PlayerStateChangeEvent;
 import de.knufficast.events.QueueChangedEvent;
-import de.knufficast.logic.ImageCache;
 import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Episode.DownloadState;
-import de.knufficast.logic.model.Feed;
 import de.knufficast.logic.model.Queue;
 import de.knufficast.player.PlayerService.PlayerBinder;
 import de.knufficast.util.Callback;
@@ -46,10 +38,7 @@ import de.knufficast.util.PollingThread;
 
 /**
  * A wrapper around {@link PlayerService} that manages always playing what is on
- * top of the queue and removing the top upon completion. Also interacts with
- * the remote control (lock screen).
- * 
- * It's rather ugly. Sorry about that. :/
+ * top of the queue and removing the top upon completion.
  * 
  * @author crazywater
  * 
@@ -62,7 +51,7 @@ public class QueuePlayer {
   private PlayerService player;
   private boolean shouldPlay;
   private AudioManager audioManager;
-  private RemoteControlClient remoteControlClient;
+  private final RemoteController remoteController = new RemoteController();
 
   private final ServiceConnection playerConnection = new ServiceConnection() {
     @Override
@@ -136,7 +125,7 @@ public class QueuePlayer {
     @Override
     public void onAudioFocusChange(int focusChange) {
       if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-        remoteControlClient = null;
+        remoteController.release();
         pause();
       }
     }
@@ -190,7 +179,6 @@ public class QueuePlayer {
       int progress = 0;
       int total = 0;
       if (player.isPrepared()) {
-        updateLockScreenMetadata();
         progress = player.getCurrentPosition();
         total = player.getDuration();
       }
@@ -199,24 +187,6 @@ public class QueuePlayer {
     if (audioManager == null) {
       audioManager = (AudioManager) context
           .getSystemService(Context.AUDIO_SERVICE);
-    }
-  }
-
-  public void registerRemoteControl() {
-    if (remoteControlClient == null) {
-      ComponentName myEventReceiver = new ComponentName(
-          context.getPackageName(), MediaButtonReceiver.class.getName());
-      audioManager.registerMediaButtonEventReceiver(myEventReceiver);
-      // build the PendingIntent for the remote control client
-      Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
-      mediaButtonIntent.setComponent(myEventReceiver);
-      // create and register the remote control client
-      PendingIntent mediaPendingIntent = PendingIntent.getBroadcast(context, 0,
-          mediaButtonIntent, 0);
-      remoteControlClient = new RemoteControlClient(mediaPendingIntent);
-      remoteControlClient
-          .setTransportControlFlags(RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE);
-      audioManager.registerRemoteControlClient(remoteControlClient);
     }
   }
 
@@ -237,18 +207,18 @@ public class QueuePlayer {
       return;
     }
     shouldPlay = true;
-    registerRemoteControl();
+    remoteController.register(context, audioManager);
     if (!queue.isEmpty() && player.hasEpisode()) {
       int audioFocus = audioManager.requestAudioFocus(
           onAudioFocusChangeListener, AudioManager.STREAM_MUSIC,
           AudioManager.AUDIOFOCUS_GAIN);
       if (audioFocus == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-        updateLockScreenMetadata();
         if (progressListener != null) {
           startProgressReporter();
         }
         player.play();
-        updateLockScreen();
+        remoteController.updateMetadata(queue.peek(), player.getDuration());
+        remoteController.updateState(true);
         eventBus.fireEvent(new PlayerStateChangeEvent(true));
       }
     }
@@ -263,7 +233,7 @@ public class QueuePlayer {
       stopProgressReporter();
     }
     player.pause();
-    updateLockScreen();
+    remoteController.updateState(false);
     eventBus.fireEvent(new PlayerStateChangeEvent(false));
   }
 
@@ -283,45 +253,6 @@ public class QueuePlayer {
   public void seekTo(int msec) {
     if (player != null) {
       player.seekTo(msec);
-    }
-  }
-
-  private void updateLockScreen() {
-    if (remoteControlClient != null) {
-      if (player.isPlaying()) {
-        remoteControlClient
-            .setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
-      } else {
-        remoteControlClient
-            .setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
-      }
-    }
-  }
-
-  private void updateLockScreenMetadata() {
-    if (remoteControlClient != null) {
-      MetadataEditor editor = remoteControlClient.editMetadata(true);
-      Episode episode = queue.peek();
-      Feed feed = App.get().getConfiguration()
-          .getFeed(episode.getIdentifier().getFeedId());
-
-      ImageCache imageCache = App.get().getImageCache();
-      String imgUrl = episode.getImgUrl();
-      BitmapDrawable episodeIcon = imageCache.getResource(imgUrl);
-      if (episodeIcon.equals(imageCache.getDefaultIcon())) {
-        episodeIcon = imageCache.getResource(feed.getImgUrl());
-      }
-      editor.putBitmap(MetadataEditor.BITMAP_KEY_ARTWORK,
-          episodeIcon.getBitmap());
-
-      editor.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION,
-          player.getDuration());
-
-      editor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST,
-          feed.getTitle());
-      editor.putString(MediaMetadataRetriever.METADATA_KEY_TITLE,
-          episode.getTitle());
-      editor.apply();
     }
   }
 
