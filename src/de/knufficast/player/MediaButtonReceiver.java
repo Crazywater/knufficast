@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.KeyEvent;
 import de.knufficast.App;
+import de.knufficast.logic.model.Queue;
 
 public class MediaButtonReceiver extends BroadcastReceiver {
   @Override
@@ -14,8 +15,13 @@ public class MediaButtonReceiver extends BroadcastReceiver {
           .getParcelableExtra(Intent.EXTRA_KEY_EVENT);
       if (event != null && event.getAction() == KeyEvent.ACTION_UP) {
         QueuePlayer player = App.get().getPlayer();
+        Queue queue = App.get().getQueue();
         if (event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
           player.togglePlaying();
+        } else if (event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_NEXT) {
+          queue.rotateUpward();
+        } else if (event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_PREVIOUS) {
+          queue.rotateDownward();
         }
       }
     }

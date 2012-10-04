@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import de.knufficast.App;
+import de.knufficast.events.EventBus;
 import de.knufficast.events.QueueChangedEvent;
 import de.knufficast.events.QueuePoppedEvent;
 import de.knufficast.events.QueueRemovedEvent;
@@ -123,10 +124,49 @@ public class Queue implements Serializable {
     }
     Episode head = queue.iterator().next();
     queue.remove(head);
-    App.get().getEventBus().fireEvent(new QueueChangedEvent(true));
-    App.get().getEventBus().fireEvent(new QueueRemovedEvent(head));
-    App.get().getEventBus().fireEvent(new QueuePoppedEvent(head));
+    EventBus eventBus = App.get().getEventBus();
+    eventBus.fireEvent(new QueueChangedEvent(true));
+    eventBus.fireEvent(new QueueRemovedEvent(head));
+    eventBus.fireEvent(new QueuePoppedEvent(head));
     return head;
+  }
+
+  /**
+   * Moves the top element of the queue to the bottom.
+   */
+  public synchronized void rotateDownward() {
+    if (queue.size() > 1) {
+      Set<Episode> newQueue = new LinkedHashSet<Episode>();
+      Iterator<Episode> it = queue.iterator();
+      Episode bottom = it.next();
+      while (it.hasNext()) {
+        bottom = it.next();
+      }
+      newQueue.add(bottom);
+      it = queue.iterator();
+      while (it.hasNext()) {
+        newQueue.add(it.next());
+      }
+      queue = newQueue;
+      App.get().getEventBus().fireEvent(new QueueChangedEvent(true));
+    }
+  }
+
+  /**
+   * Moves the top element of the queue to the bottom.
+   */
+  public synchronized void rotateUpward() {
+    if (queue.size() > 1) {
+      Set<Episode> newQueue = new LinkedHashSet<Episode>();
+      Iterator<Episode> it = queue.iterator();
+      Episode head = it.next();
+      while (it.hasNext()) {
+        newQueue.add(it.next());
+      }
+      newQueue.add(head);
+      queue = newQueue;
+      App.get().getEventBus().fireEvent(new QueueChangedEvent(true));
+    }
   }
 
   public boolean isEmpty() {

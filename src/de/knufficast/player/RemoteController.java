@@ -54,7 +54,9 @@ public class RemoteController {
           mediaButtonIntent, 0);
       remoteControlClient = new RemoteControlClient(mediaPendingIntent);
       remoteControlClient
-          .setTransportControlFlags(RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE);
+          .setTransportControlFlags(RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE
+              | RemoteControlClient.FLAG_KEY_MEDIA_NEXT
+              | RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS);
       audioManager.registerRemoteControlClient(remoteControlClient);
     }
   }
