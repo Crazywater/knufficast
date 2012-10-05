@@ -15,6 +15,13 @@
  ******************************************************************************/
 package de.knufficast.flattr;
 
+/**
+ * An interface that is used for Flattr constants. If you fork Knufficast,
+ * please request your own ClientID and secret with flattr.
+ * 
+ * @author crazywater
+ * 
+ */
 public interface IFlattrConstants {
   public String getClientId();
   public String getClientSecret();

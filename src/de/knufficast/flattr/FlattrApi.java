@@ -38,6 +38,12 @@ import de.knufficast.logic.FlattrConfiguration;
 import de.knufficast.logic.FlattrConfiguration.FlattrStatus;
 import de.knufficast.util.BooleanCallback;
 
+/**
+ * A class that communicates with Flattr via REST.
+ * 
+ * @author crazywater
+ * 
+ */
 public class FlattrApi {
   private static final IFlattrConstants CONSTANTS = new FlattrConstants();
   private static final String LOGIN_URL = "https://flattr.com/oauth/token";
@@ -94,6 +100,9 @@ public class FlattrApi {
     return getAuthorized(requestUrl, authorization);
   }
 
+  /**
+   * Flattrs a thing.
+   */
   public void flattr(final String flattrUrl,
       final BooleanCallback<String, String> callback) {
     runOnThread(new Runnable() {
@@ -139,6 +148,12 @@ public class FlattrApi {
     });
   }
 
+  /**
+   * Inform this client of an OAuth response.
+   * 
+   * @param data
+   *          the URI of the OAuth response
+   */
   public void setOauthResponse(final String data) {
     runOnThread(new Runnable() {
       @Override
@@ -157,6 +172,9 @@ public class FlattrApi {
     });
   }
 
+  /**
+   * Asks the flattr servers whether a thing has been flattred.
+   */
   public void isFlattred(final String flattrUrl,
       final BooleanCallback<Boolean, String> callback) {
     runOnThread(new Runnable() {

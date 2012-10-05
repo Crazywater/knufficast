@@ -26,6 +26,13 @@ import de.knufficast.logic.model.Episode.FlattrState;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.NetUtil;
 
+/**
+ * A service that processes the {@link FlattrQueue} and flattrs the entries. Can
+ * be started via intent.
+ * 
+ * @author crazywater
+ * 
+ */
 public class FlattrQueueService extends IntentService {
   private final FlattrApi flattrApi = new FlattrApi();
   private final NetUtil netUtil;
@@ -35,7 +42,7 @@ public class FlattrQueueService extends IntentService {
     netUtil = new NetUtil(this);
   }
 
-  public void processQueue() {
+  private void processQueue() {
     if (netUtil.isOnline()) {
       final FlattrQueue flattrQueue = App.get().getFlattrQueue();
       while (!flattrQueue.isEmpty()) {

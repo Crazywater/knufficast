@@ -27,6 +27,14 @@ import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Episode.FlattrState;
 import de.knufficast.logic.model.Episode.PlayState;
 
+/**
+ * A watcher that starts the {@link FlattrQueueService} whenever something new
+ * enters the FlattrQueue and puts new things in the FlattrQueue when they
+ * should be flattred.
+ * 
+ * @author crazywater
+ * 
+ */
 public class FlattrWatcher {
   private final Context context;
   private final EventBus eventBus;

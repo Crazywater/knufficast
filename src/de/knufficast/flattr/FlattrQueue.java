@@ -22,6 +22,12 @@ import de.knufficast.App;
 import de.knufficast.events.FlattrQueueEvent;
 import de.knufficast.logic.model.Episode;
 
+/**
+ * The queue of things left to flattr.
+ * 
+ * @author crazywater
+ * 
+ */
 public class FlattrQueue {
   private final Queue<Episode> episodes = new ConcurrentLinkedQueue<Episode>();
 

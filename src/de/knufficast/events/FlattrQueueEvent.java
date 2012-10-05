@@ -15,6 +15,12 @@
  ******************************************************************************/
 package de.knufficast.events;
 
+/**
+ * An event that is fired when a new thing enters the FlattrQueue.
+ * 
+ * @author crazywater
+ * 
+ */
 public class FlattrQueueEvent implements Event {
 
 }

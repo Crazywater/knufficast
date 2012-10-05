@@ -17,6 +17,13 @@ package de.knufficast.events;
 
 import de.knufficast.logic.FlattrConfiguration;
 
+/**
+ * An event that fires as the FlattrStatus of the configuration changes (i.e. we
+ * get authenticated with Flattr or start authenticating or...)
+ * 
+ * @author crazywater
+ * 
+ */
 public class FlattrStatusEvent implements Event {
   private FlattrConfiguration.FlattrStatus status;
 
