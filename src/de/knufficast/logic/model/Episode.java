@@ -20,6 +20,7 @@ import java.io.Serializable;
 import de.knufficast.App;
 import de.knufficast.events.EpisodeDownloadProgressEvent;
 import de.knufficast.events.EpisodeDownloadStateEvent;
+import de.knufficast.events.FlattrStateEvent;
 
 /**
  * An entry in a {@link Feed}. This doesn't necessarily mean that there is an
@@ -113,6 +114,7 @@ public class Episode implements Serializable {
 
   public void setFlattrState(FlattrState flattrState) {
     this.flattrState = flattrState;
+    App.get().getEventBus().fireEvent(new FlattrStateEvent());
   }
 
   /**

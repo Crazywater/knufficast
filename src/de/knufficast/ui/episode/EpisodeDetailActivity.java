@@ -36,6 +36,7 @@ import de.knufficast.R;
 import de.knufficast.events.EpisodeDownloadProgressEvent;
 import de.knufficast.events.EpisodeDownloadStateEvent;
 import de.knufficast.events.EventBus;
+import de.knufficast.events.FlattrStateEvent;
 import de.knufficast.events.Listener;
 import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.flattr.FlattrApi;
@@ -117,6 +118,17 @@ public class EpisodeDetailActivity extends Activity {
       }
     }
   };
+  private Listener<FlattrStateEvent> flattrStateListener = new Listener<FlattrStateEvent>() {
+    @Override
+    public void onEvent(final FlattrStateEvent event) {
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          updateFlattringState();
+        }
+      });
+    }
+  };
 
 
   @Override
@@ -170,6 +182,7 @@ public class EpisodeDetailActivity extends Activity {
     eventBus.addListener(EpisodeDownloadProgressEvent.class,
         downloadProgressListener);
     eventBus.addListener(PlayerProgressEvent.class, playerProgressListener);
+    eventBus.addListener(FlattrStateEvent.class, flattrStateListener);
 
     downloadProgress.setMax(100);
     listeningProgress.setMax(100);
@@ -202,8 +215,7 @@ public class EpisodeDetailActivity extends Activity {
               }
               @Override
               public void fail(String error) {
-                Log.d("EpisodeDetailActivity",
-                    "Episode get flattr state failed " + error);
+                // do nothing, might just not have a good connection...
               }
             });
       }
@@ -218,6 +230,7 @@ public class EpisodeDetailActivity extends Activity {
     eventBus.removeListener(EpisodeDownloadProgressEvent.class,
         downloadProgressListener);
     eventBus.removeListener(PlayerProgressEvent.class, playerProgressListener);
+    eventBus.removeListener(FlattrStateEvent.class, flattrStateListener);
   }
 
   @Override
@@ -318,11 +331,13 @@ public class EpisodeDetailActivity extends Activity {
         text = getString(R.string.flattring_state_enqueued);
         progress = 50;
       } else if (episode.getFlattrState() == FlattrState.FLATTRED) {
+        text = getString(R.string.flattring_state_error);
+        progress = 100;
+      } else if (episode.getFlattrState() == FlattrState.FLATTRED) {
         text = getString(R.string.flattring_state_flattred);
         progress = 100;
       }
-      if (episode.getDownloadState() == DownloadState.FINISHED
-          && episode.getPlayState() == PlayState.FINISHED) {
+      if (episode.getPlayState() == PlayState.FINISHED) {
         episodeState.setText(text);
       }
       setProgress(flattringProgress, flattringProgressText, progress);

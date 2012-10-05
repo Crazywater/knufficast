@@ -24,6 +24,7 @@
     <string name="playing_state_none">Not listened to</string>
     <string name="playing_state_playing">Listened to %1$s of %2$s</string>
     <string name="flattring_state_none">Not flattred</string>
+    <string name="flattring_state_error">Could not flattr. Check the settings.</string>
     <string name="flattring_state_enqueued">In flattr-queue&#8230;</string>
     <string name="flattring_state_flattred">flattred</string>
     <string name="menu_delete_download">Delete download</string>
