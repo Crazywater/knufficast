@@ -34,8 +34,8 @@ import org.json.JSONObject;
 import android.net.Uri;
 import android.util.Base64;
 import de.knufficast.App;
-import de.knufficast.R;
 import de.knufficast.logic.FlattrConfiguration;
+import de.knufficast.logic.FlattrConfiguration.FlattrStatus;
 import de.knufficast.util.BooleanCallback;
 
 public class FlattrApi {
@@ -70,7 +70,7 @@ public class FlattrApi {
       JSONObject response = postAuthorized(LOGIN_URL, json, userPassword);
       if (response.getString("access_token") != null) {
         config.setAccessToken(response.getString("access_token"));
-        config.setFlattrStatus(R.string.flattr_no_error);
+        config.setFlattrStatus(FlattrStatus.AUTHENTICATED);
       } else {
         config.resetAuthentication();
       }
@@ -109,18 +109,18 @@ public class FlattrApi {
           JSONObject result = postAuthorized(FLATTR_URL, request, authorization);
           if (result.has("error")) {
             if (result.getString("error").equals("no_means")) {
-              config.setFlattrStatus(R.string.flattr_no_means);
+              config.setFlattrStatus(FlattrStatus.NO_MEANS);
               callback.fail(ERROR_NO_MEANS);
             } else if (result.getString("error").equals("flattr_once")) {
               callback.success(flattrUrl);
             } else if (result.getString("error").equals("unauthorized")) {
-              config.setFlattrStatus(R.string.flattr_auth_error);
+              config.setFlattrStatus(FlattrStatus.NOT_AUTHENTICATED);
               callback.fail(ERROR_AUTHORIZATION);
             } else {
               callback.fail(ERROR_NOT_FOUND);
             }
           }
-          if (result.has("message")) {
+          if (!result.has("message")) {
             throw new JSONException("No message field");
           } else {
             String str = result.getString("message");
@@ -146,12 +146,12 @@ public class FlattrApi {
         Uri uri = Uri.parse(data);
         FlattrConfiguration config = App.get().getConfiguration()
             .getFlattrConfig();
-        config.setFlattrStatus(R.string.flattr_authenticating);
+        config.setFlattrStatus(FlattrStatus.AUTHENTICATING);
         if (uri.getQueryParameter("code") != null) {
           config.setAuthCode(uri.getQueryParameter("code"));
           login();
         } else {
-          config.setFlattrStatus(R.string.flattr_auth_error);
+          config.setFlattrStatus(FlattrStatus.ERROR);
         }
       }
     });
@@ -164,6 +164,10 @@ public class FlattrApi {
       public void run() {
         try {
           JSONObject thing = lookup(flattrUrl);
+          if (thing == null) {
+            callback.fail(ERROR_CONNECTION);
+            return;
+          }
           if (thing.has("flattred")) {
             boolean result = thing.getBoolean("flattred");
             callback.success(result);

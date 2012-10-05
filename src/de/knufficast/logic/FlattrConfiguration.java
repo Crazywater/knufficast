@@ -18,18 +18,21 @@ package de.knufficast.logic;
 import java.io.Serializable;
 
 import de.knufficast.App;
-import de.knufficast.R;
 import de.knufficast.events.FlattrStatusEvent;
 
 public class FlattrConfiguration implements Serializable {
   private static final long serialVersionUID = 1L;
-  private int status;
+  private FlattrStatus status;
   private String authCode;
   private String accessToken;
 
-  public void setFlattrStatus(int stringResource) {
-    if (status != stringResource) {
-      status = stringResource;
+  public enum FlattrStatus {
+    NOT_AUTHENTICATED, AUTHENTICATING, AUTHENTICATED, ERROR, NO_MEANS
+  }
+
+  public void setFlattrStatus(FlattrStatus status) {
+    if (this.status != status) {
+      this.status = status;
     }
     App.get().getEventBus().fireEvent(new FlattrStatusEvent(status));
   }
@@ -37,14 +40,10 @@ public class FlattrConfiguration implements Serializable {
   public void resetAuthentication() {
     setAccessToken(null);
     setAuthCode(null);
-    setFlattrStatus(R.string.flattr_auth_error);
+    setFlattrStatus(FlattrStatus.NOT_AUTHENTICATED);
   }
 
-  public boolean hasError() {
-    return status != 0;
-  }
-
-  public int getStatusResource() {
+  public FlattrStatus getStatus() {
     return status;
   }
 

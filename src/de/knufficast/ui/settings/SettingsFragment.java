@@ -26,6 +26,8 @@ import de.knufficast.R;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.FlattrStatusEvent;
 import de.knufficast.events.Listener;
+import de.knufficast.logic.FlattrConfiguration;
+import de.knufficast.logic.FlattrConfiguration.FlattrStatus;
 import de.knufficast.watchers.UpdaterService;
 
 /**
@@ -45,8 +47,7 @@ public class SettingsFragment extends PreferenceFragment {
       getActivity().runOnUiThread(new Runnable() {
         @Override
         public void run() {
-          String text = getString(event.getStringResource());
-          flattrPreference.setSummary(text);
+          updateFlattrPref(event.getStatus());
         }
       });
     }
@@ -74,8 +75,7 @@ public class SettingsFragment extends PreferenceFragment {
     updateFreqPreference = (ListPreference) findPreference("pref_key_update_freq");
     flattrPreference = findPreference("pref_key_flattr_intent");
     updateFreqPref();
-    updateFlattrPref(App.get().getConfiguration().getFlattrConfig()
-        .getStatusResource());
+    updateFlattrPref(App.get().getConfiguration().getFlattrConfig().getStatus());
   }
 
   private void updateFreqPref() {
@@ -83,11 +83,17 @@ public class SettingsFragment extends PreferenceFragment {
         R.string.pref_summary_update_freq, updateFreqPreference.getEntry()));
   }
 
-  private void updateFlattrPref(int statusResource) {
-    if (statusResource > 0) {
-      flattrPreference.setSummary(getString(statusResource));
-    } else {
+  private void updateFlattrPref(FlattrConfiguration.FlattrStatus status) {
+    if (status == FlattrStatus.NOT_AUTHENTICATED) {
       flattrPreference.setSummary(R.string.flattr_auth_error);
+    } else if (status == FlattrStatus.AUTHENTICATED) {
+      flattrPreference.setSummary(R.string.flattr_no_error);
+    } else if (status == FlattrStatus.AUTHENTICATING) {
+      flattrPreference.setSummary(R.string.flattr_authenticating);
+    } else if (status == FlattrStatus.ERROR) {
+      flattrPreference.setSummary(R.string.flattr_auth_error);
+    } else if (status == FlattrStatus.NO_MEANS) {
+      flattrPreference.setSummary(R.string.flattr_no_means);
     }
   }
 

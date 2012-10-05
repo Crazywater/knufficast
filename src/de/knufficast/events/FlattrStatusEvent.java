@@ -15,14 +15,16 @@
  ******************************************************************************/
 package de.knufficast.events;
 
-public class FlattrStatusEvent implements Event {
-  private int stringResource;
+import de.knufficast.logic.FlattrConfiguration;
 
-  public FlattrStatusEvent(int stringResource) {
-    this.stringResource = stringResource;
+public class FlattrStatusEvent implements Event {
+  private FlattrConfiguration.FlattrStatus status;
+
+  public FlattrStatusEvent(FlattrConfiguration.FlattrStatus status) {
+    this.status = status;
   }
 
-  public int getStringResource() {
-    return stringResource;
+  public FlattrConfiguration.FlattrStatus getStatus() {
+    return status;
   }
 }
