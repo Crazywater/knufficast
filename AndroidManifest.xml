@@ -86,11 +86,23 @@
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:label="@string/title_activity_settings" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="knufficastoauth" />
+            </intent-filter>
+
             <category android:name="android.intent.category.PREFERENCE" />
         </activity>
 
         <service
             android:name=".watchers.UpdaterService"
+            android:enabled="true" />
+        <service
+            android:name=".watchers.FlattrQueueService"
             android:enabled="true" />
         <service android:name=".player.PlayerService" />
 

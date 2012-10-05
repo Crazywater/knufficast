@@ -20,8 +20,9 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * A {@link BroadcastReceiver} that receives alarms and kicks off the
- * {@link UpdaterService} to refresh feeds.
+ * A {@link BroadcastReceiver} that receives alarms (time and connectivity
+ * change) and kicks off the {@link UpdaterService} to refresh feeds and
+ * flattrs.
  * 
  * @author crazywater
  * 
@@ -30,5 +31,6 @@ public class UpdateAlarmReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
     context.startService(new Intent(context, UpdaterService.class));
+    context.startService(new Intent(context, FlattrQueueService.class));
   }
 }

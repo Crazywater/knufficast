@@ -28,6 +28,7 @@
     <string name="flattring_state_flattred">flattred</string>
     <string name="menu_delete_download">Delete download</string>
     <string name="menu_download">Download</string>
+    <string name="menu_flattr">flattr this</string>
     <string name="menu_unsubscribe_feed">Unsubscribe</string>
     <string name="menu_set_unlistened">Set as unlistened</string>
     <string name="intent_add_feed">Subscribe in Knufficast</string>
@@ -53,9 +54,13 @@
     <string name="pref_summary_download_needs_wifi">Download episodes only on WiFi</string>
     <string name="pref_flattr">Flattr</string>
     <string name="pref_summary_flattr_account">Log in to flattr&#8230;</string>
-    <string name="pref_title_flattr_account">Flattr account</string>
-    <string name="pref_flattr_account_dialog_login">Log in</string>
-    <string name="flattr_username_hint">Username</string>
+    <string name="pref_title_flattr_account">Account settings</string>
+    <string name="pref_summary_auto_flattr">Automatically flattr fully listened episodes</string>
+    <string name="pref_title_auto_flattr">Auto-flattr</string>
+    <string name="flattr_auth_error">Not authenticated</string>
+    <string name="flattr_authenticating">Logging in&#8230;</string>
+    <string name="flattr_no_error">Flattr is up and running</string>
+    <string name="flattr_no_means">Your Flattr account ran out of money!</string>
     <string name="delete_feed_title">Really unsubscribe?</string>
     <string name="delete_feed_message">This will delete all information stored about this feed, including downloads, listening progress and enqueued episodes.</string>
     <string name="delete_feed_confirm">Yes</string>
@@ -65,4 +70,5 @@
     <string name="hour_6">every 6 hours</string>
     <string name="day_1">every day</string>
     <string name="week_1">every week</string>
+    <string name="internal_flattr_authurl">https://flattr.com/oauth/authorize?response_type=code&amp;client_id=0XW1mQCZ4t6sFMOwe3NWHIDTBwQGGi6x&amp;redirect_uri=knufficastoauth://&amp;scope=flattr</string>
 </resources>

@@ -29,13 +29,14 @@ import de.knufficast.events.EpisodeDownloadStateEvent;
  * 
  */
 public class Episode implements Serializable {
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
   private String feedUrl;
   private String title;
   private String imgUrl;
   private String description;
   private String dataUrl;
   private String guid;
+  private String flattrUrl;
 
   private volatile DownloadState downloadState = DownloadState.NONE;
   private FlattrState flattrState = FlattrState.NONE;
@@ -50,13 +51,14 @@ public class Episode implements Serializable {
   private long totalBytes;
 
   public Episode(String feedUrl, String title, String imgUrl,
-      String description, String dataUrl, String guid) {
+      String description, String dataUrl, String guid, String flattrId) {
     this.feedUrl = feedUrl;
     this.title = title;
     this.imgUrl = imgUrl;
     this.description = description;
     this.dataUrl = dataUrl;
     this.guid = guid;
+    this.flattrUrl = flattrId;
   }
 
   public String getFeedUrl() {
@@ -101,8 +103,16 @@ public class Episode implements Serializable {
     return dataUrl;
   }
 
+  public boolean hasFlattr() {
+    return !("".equals(flattrUrl));
+  }
+
   public FlattrState getFlattrState() {
     return flattrState;
+  }
+
+  public void setFlattrState(FlattrState flattrState) {
+    this.flattrState = flattrState;
   }
 
   /**
@@ -118,6 +128,10 @@ public class Episode implements Serializable {
    */
   public String getGuid() {
     return guid;
+  }
+
+  public String getFlattrUrl() {
+    return flattrUrl;
   }
 
   /**
@@ -138,7 +152,7 @@ public class Episode implements Serializable {
    * Which state of flattring the episode is currently in.
    */
   public enum FlattrState {
-    NONE, ENQUEUED, FLATTRED
+    NONE, ENQUEUED, ERROR, FLATTRED
   }
 
   /**
@@ -282,6 +296,7 @@ public class Episode implements Serializable {
     private String description = "";
     private String dataUrl = "";
     private String guid = "";
+    private String flattrUrl = "";
 
     public Builder feedUrl(String feedUrl) {
       this.feedUrl = feedUrl;
@@ -313,10 +328,16 @@ public class Episode implements Serializable {
       return this;
     }
 
+    public Builder flattrUrl(String flattrUrl) {
+      this.flattrUrl = flattrUrl;
+      return this;
+    }
+
     public Episode build() {
       // take the dataUrl as a GUID if none is specified
       String ourGuid = (guid.equals("")) ? dataUrl : guid;
-      return new Episode(feedUrl, title, imgUrl, description, dataUrl, ourGuid);
+      return new Episode(feedUrl, title, imgUrl, description, dataUrl, ourGuid,
+          flattrUrl);
     }
   }
 }

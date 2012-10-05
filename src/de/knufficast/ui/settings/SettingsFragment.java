@@ -19,9 +19,13 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.ListPreference;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import de.knufficast.App;
 import de.knufficast.R;
+import de.knufficast.events.EventBus;
+import de.knufficast.events.FlattrStatusEvent;
+import de.knufficast.events.Listener;
 import de.knufficast.watchers.UpdaterService;
 
 /**
@@ -32,7 +36,21 @@ import de.knufficast.watchers.UpdaterService;
  */
 public class SettingsFragment extends PreferenceFragment {
   private ListPreference updateFreqPreference;
+  private Preference flattrPreference;
+  private EventBus eventBus;
   private static final String KEY_UPDATE_FREQ = "pref_key_update_freq";
+  private final Listener<FlattrStatusEvent> flattrStatusListener = new Listener<FlattrStatusEvent>() {
+    @Override
+    public void onEvent(final FlattrStatusEvent event) {
+      getActivity().runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          String text = getString(event.getStringResource());
+          flattrPreference.setSummary(text);
+        }
+      });
+    }
+  };
 
   /**
    * Listener that is used to change the descriptive text of preferences upon
@@ -52,12 +70,12 @@ public class SettingsFragment extends PreferenceFragment {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
     addPreferencesFromResource(R.xml.settings_fragment);
-
-    updateFreqPreference = (ListPreference) getPreferenceScreen()
-        .findPreference("pref_key_update_freq");
+    updateFreqPreference = (ListPreference) findPreference("pref_key_update_freq");
+    flattrPreference = findPreference("pref_key_flattr_intent");
     updateFreqPref();
+    updateFlattrPref(App.get().getConfiguration().getFlattrConfig()
+        .getStatusResource());
   }
 
   private void updateFreqPref() {
@@ -65,11 +83,21 @@ public class SettingsFragment extends PreferenceFragment {
         R.string.pref_summary_update_freq, updateFreqPreference.getEntry()));
   }
 
+  private void updateFlattrPref(int statusResource) {
+    if (statusResource > 0) {
+      flattrPreference.setSummary(getString(statusResource));
+    } else {
+      flattrPreference.setSummary(R.string.flattr_auth_error);
+    }
+  }
+
   @Override
   public void onStart() {
     super.onStart();
+    eventBus = App.get().getEventBus();
     App.get().getConfiguration().getSharedPreferences()
         .registerOnSharedPreferenceChangeListener(changeListener);
+    eventBus.addListener(FlattrStatusEvent.class, flattrStatusListener);
   }
 
   @Override
@@ -77,5 +105,6 @@ public class SettingsFragment extends PreferenceFragment {
     super.onStop();
     App.get().getConfiguration().getSharedPreferences()
         .unregisterOnSharedPreferenceChangeListener(changeListener);
+    eventBus.removeListener(FlattrStatusEvent.class, flattrStatusListener);
   }
 }

@@ -20,6 +20,7 @@ import java.text.DecimalFormat;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -37,6 +38,7 @@ import de.knufficast.events.EpisodeDownloadStateEvent;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
 import de.knufficast.events.PlayerProgressEvent;
+import de.knufficast.flattr.FlattrApi;
 import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Episode.DownloadState;
 import de.knufficast.logic.model.Episode.FlattrState;
@@ -46,6 +48,8 @@ import de.knufficast.logic.model.Queue;
 import de.knufficast.ui.feed.FeedDetailActivity;
 import de.knufficast.ui.main.MainActivity;
 import de.knufficast.ui.settings.SettingsActivity;
+import de.knufficast.util.BooleanCallback;
+import de.knufficast.util.NetUtil;
 import de.knufficast.util.TimeUtil;
 import de.knufficast.watchers.QueueDownloader;
 
@@ -170,6 +174,40 @@ public class EpisodeDetailActivity extends Activity {
     downloadProgress.setMax(100);
     listeningProgress.setMax(100);
     flattringProgress.setMax(100);
+
+    if (episode.hasFlattr()) {
+      NetUtil netUtil = new NetUtil(this);
+      if (netUtil.isOnline()) {
+        // check if the flattr state has changed
+        FlattrApi flattrApi = new FlattrApi();
+        Log.d("EpisodeDetailActivity", "Finding flattr state");
+        flattrApi.isFlattred(episode.getFlattrUrl(),
+            new BooleanCallback<Boolean, String>() {
+              @Override
+              public void success(Boolean flattred) {
+                // successfully got new flattring state
+                Log.d("EpisodeDetailActivity", "Episode got new flattr state "
+                    + flattred);
+                if (episode.getFlattrState() != FlattrState.ENQUEUED
+                    || flattred) {
+                  episode.setFlattrState(flattred ? FlattrState.FLATTRED
+                      : FlattrState.NONE);
+                  runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                      updateFlattringState();
+                    }
+                  });
+                }
+              }
+              @Override
+              public void fail(String error) {
+                Log.d("EpisodeDetailActivity",
+                    "Episode get flattr state failed " + error);
+              }
+            });
+      }
+    }
   }
 
   @Override
@@ -209,6 +247,11 @@ public class EpisodeDetailActivity extends Activity {
           | Intent.FLAG_ACTIVITY_NEW_TASK);
       startActivity(parentActivityIntent);
       finish();
+      return true;
+    case R.id.menu_flattr:
+      episode.setFlattrState(FlattrState.ENQUEUED);
+      App.get().getFlattrQueue().enqueue(episode);
+      updateFlattringState();
       return true;
     case R.id.menu_settings:
       Intent intent = new Intent(this, SettingsActivity.class);
@@ -258,26 +301,35 @@ public class EpisodeDetailActivity extends Activity {
     } else if (state == PlayState.FINISHED) {
       progress = 100;
     }
-    if (state != PlayState.FINISHED) {
+    if (episode.getDownloadState() == DownloadState.FINISHED && state != PlayState.FINISHED) {
       episodeState.setText(text);
     }
     setProgress(listeningProgress, listeningProgressText, progress);
   }
 
   private void updateFlattringState() {
-    int progress = 0;
-    String text = "";
-    if (episode.getFlattrState() == FlattrState.NONE) {
-      text = getString(R.string.flattring_state_none);
-      progress = 0;
-    } else if (episode.getFlattrState() == FlattrState.ENQUEUED) {
-      text = getString(R.string.flattring_state_enqueued);
-      progress = 50;
-    } else if (episode.getFlattrState() == FlattrState.FLATTRED) {
-      text = getString(R.string.flattring_state_flattred);
-      progress = 100;
+    if (episode.hasFlattr()) {
+      int progress = 0;
+      String text = "";
+      if (episode.getFlattrState() == FlattrState.NONE) {
+        text = getString(R.string.flattring_state_none);
+        progress = 0;
+      } else if (episode.getFlattrState() == FlattrState.ENQUEUED) {
+        text = getString(R.string.flattring_state_enqueued);
+        progress = 50;
+      } else if (episode.getFlattrState() == FlattrState.FLATTRED) {
+        text = getString(R.string.flattring_state_flattred);
+        progress = 100;
+      }
+      if (episode.getDownloadState() == DownloadState.FINISHED
+          && episode.getPlayState() == PlayState.FINISHED) {
+        episodeState.setText(text);
+      }
+      setProgress(flattringProgress, flattringProgressText, progress);
+    } else {
+      flattringProgress.setVisibility(View.GONE);
+      flattringProgressText.setVisibility(View.GONE);
     }
-    setProgress(flattringProgress, flattringProgressText, progress);
   }
 
   private void updateDownloadState() {

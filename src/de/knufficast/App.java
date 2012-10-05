@@ -24,6 +24,7 @@ import java.io.ObjectOutputStream;
 import android.app.AlarmManager;
 import android.app.Application;
 import de.knufficast.events.EventBus;
+import de.knufficast.flattr.FlattrQueue;
 import de.knufficast.logic.Configuration;
 import de.knufficast.logic.ImageCache;
 import de.knufficast.logic.model.Queue;
@@ -33,6 +34,7 @@ import de.knufficast.util.file.InternalFileUtil;
 import de.knufficast.watchers.ConfigurationSaver;
 import de.knufficast.watchers.DownloadRemover;
 import de.knufficast.watchers.DownloadWatcher;
+import de.knufficast.watchers.FlattrWatcher;
 import de.knufficast.watchers.UpdaterService;
 
 /**
@@ -52,6 +54,8 @@ public class App extends Application {
       eventBus);
   private final DownloadRemover downloadRemover = new DownloadRemover(this,
       eventBus);
+  private final FlattrWatcher flattrWatcher = new FlattrWatcher(this, eventBus);
+  private final FlattrQueue flattrQueue = new FlattrQueue();
   private QueuePlayer queuePlayer;
   private static App instance;
 
@@ -70,6 +74,7 @@ public class App extends Application {
     configurationSaver.register();
     downloadWatcher.register();
     downloadRemover.register();
+    flattrWatcher.register();
   }
 
   /**
@@ -119,6 +124,10 @@ public class App extends Application {
    */
   public LockManager getLockManager() {
     return lockManager;
+  }
+
+  public FlattrQueue getFlattrQueue() {
+    return flattrQueue;
   }
 
   /**

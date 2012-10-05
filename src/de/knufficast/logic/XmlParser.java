@@ -27,7 +27,6 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import android.util.Log;
 import de.knufficast.logic.model.Episode;
 import de.knufficast.logic.model.Feed;
 
@@ -54,9 +53,11 @@ public class XmlParser {
   private static final String TITLE_TAG = "title";
   private static final String GUID_TAG = "guid";
   private static final String EPISODE_TAG = "item";
+  private static final String LINK_TAG = "link";
   private static final String IMAGE_TAG = "image";
   private static final String LOCATION_ATTRIBUTE = "href";
   private static final String URL_ATTRIBUTE = "url";
+  private static final String REL_ATTRIBUTE = "rel";
 
   /**
    * Parses an XML input. Resulting feeds can be retrieved with
@@ -143,8 +144,6 @@ public class XmlParser {
     } else if (tag.equals(EPISODE_TAG)) {
       episodeBuilder = Episode.builder().feedUrl(feedUrl);
     } else if (tag.equals(IMAGE_TAG)) {
-      Log.d("XmlParser",
-          "ImageTag with location " + attributes.get(LOCATION_ATTRIBUTE));
       String location = attributes.get(LOCATION_ATTRIBUTE);
       if (location != null) {
         if (FEED_TAG.equals(getParentTag())) {
@@ -155,6 +154,13 @@ public class XmlParser {
       }
     } else if (tag.equals(ENCLOSURE_TAG) && EPISODE_TAG.equals(getParentTag())) {
       episodeBuilder.dataUrl(attributes.get(URL_ATTRIBUTE));
+    } else if (tag.equals(LINK_TAG) && EPISODE_TAG.equals(getParentTag())) {
+      if ("payment".equals(attributes.get(REL_ATTRIBUTE))) {
+        String paymentLocation = attributes.get(LOCATION_ATTRIBUTE);
+        if (paymentLocation != null && paymentLocation.contains("flattr")) {
+          episodeBuilder.flattrUrl(paymentLocation);
+        }
+      }
     }
   }
 

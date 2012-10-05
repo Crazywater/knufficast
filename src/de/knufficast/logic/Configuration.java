@@ -43,6 +43,7 @@ public class Configuration implements Serializable {
 
   private Map<String, Feed> feedsByUrl = new HashMap<String, Feed>();
   private Queue queue = new Queue();
+  private FlattrConfiguration flattrConfig;
   private long lastUpdate;
 
   /**
@@ -69,6 +70,13 @@ public class Configuration implements Serializable {
    */
   public Feed getFeed(String url) {
     return feedsByUrl.get(url);
+  }
+
+  public FlattrConfiguration getFlattrConfig() {
+    if (flattrConfig == null) {
+      flattrConfig = new FlattrConfiguration();
+    }
+    return flattrConfig;
   }
 
   /**
@@ -215,6 +223,10 @@ public class Configuration implements Serializable {
    */
   public boolean autoRetry() {
     return getSharedPreferences().getBoolean("pref_key_auto_retry", true);
+  }
+
+  public boolean autoFlattr() {
+    return getSharedPreferences().getBoolean("pref_key_auto_flattr", false);
   }
 
   /**

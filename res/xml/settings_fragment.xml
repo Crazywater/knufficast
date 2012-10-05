@@ -8,7 +8,7 @@
             android:key="pref_key_update_needs_wifi"
             android:summary="@string/pref_summary_update_needs_wifi"
             android:title="@string/pref_title_update_needs_wifi" />
-        
+
         <ListPreference
             android:defaultValue="3600"
             android:dialogTitle="@string/pref_dialog_title_update_freq"
@@ -46,11 +46,19 @@
     <PreferenceCategory
         android:key="pref_key_flattr"
         android:title="@string/pref_flattr" >
-        <de.knufficast.ui.settings.FlattrDialogPreference 
+        <Preference
+            android:key="pref_key_flattr_intent"
             android:summary="@string/pref_summary_flattr_account"
-            android:title="@string/pref_title_flattr_account"
-            android:dialogLayout="@layout/dialog_flattr_settings"
-            android:positiveButtonText="@string/pref_flattr_account_dialog_login">
-        </de.knufficast.ui.settings.FlattrDialogPreference>
+            android:title="@string/pref_title_flattr_account" >
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="@string/internal_flattr_authurl" />
+        </Preference>
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_key_auto_flattr"
+            android:summary="@string/pref_summary_auto_flattr"
+            android:title="@string/pref_title_auto_flattr" />
     </PreferenceCategory>
+
 </PreferenceScreen>

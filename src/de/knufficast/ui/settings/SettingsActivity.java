@@ -19,6 +19,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.view.MenuItem;
+import de.knufficast.flattr.FlattrApi;
 import de.knufficast.ui.main.MainActivity;
 
 /**
@@ -28,6 +29,7 @@ import de.knufficast.ui.main.MainActivity;
  * 
  */
 public class SettingsActivity extends PreferenceActivity {
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -35,6 +37,14 @@ public class SettingsActivity extends PreferenceActivity {
     // display the fragment
     getFragmentManager().beginTransaction()
         .replace(android.R.id.content, new SettingsFragment()).commit();
+
+    // get the intent
+    String scheme = getIntent().getScheme();
+    if ("knufficastoauth".equals(scheme)) {
+      String data = getIntent().getDataString();
+      FlattrApi api = new FlattrApi();
+      api.setOauthResponse(data);
+    }
   }
 
   @Override
