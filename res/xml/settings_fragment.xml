@@ -55,7 +55,7 @@
                 android:data="@string/internal_flattr_authurl" />
         </Preference>
         <CheckBoxPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="pref_key_auto_flattr"
             android:summary="@string/pref_summary_auto_flattr"
             android:title="@string/pref_title_auto_flattr" />
