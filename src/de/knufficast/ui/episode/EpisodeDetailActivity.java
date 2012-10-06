@@ -309,8 +309,8 @@ public class EpisodeDetailActivity extends Activity {
     } else if (state == PlayState.STARTED_PLAYING) {
       text = getString(R.string.playing_state_playing,
           timeUtil.formatTime(played), timeUtil.formatTime(duration));
-      progress = (int) ((double) 100 * episode.getSeekLocation() / episode
-          .getDuration());
+      progress = (int) ((double) 100 * played / duration);
+      Log.d("EpisodeDetailActivity", "Progress is " + progress);
     } else if (state == PlayState.FINISHED) {
       progress = 100;
     }
