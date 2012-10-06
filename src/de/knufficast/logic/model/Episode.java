@@ -30,64 +30,60 @@ import de.knufficast.events.FlattrStateEvent;
  * 
  */
 public class Episode implements Serializable {
+  /**
+   * Which download state this episode is currently in.
+   */
+  public enum DownloadState {
+    DOWNLOADING, ERROR, FINISHED, NONE, PAUSED
+  }
+
+  /**
+   * Which state of flattring the episode is currently in.
+   */
+  public enum FlattrState {
+    ENQUEUED, ERROR, FLATTRED, NONE
+  }
+
+  /**
+   * Which state of playing the episode is currently in.
+   */
+  public enum PlayState {
+    FINISHED, NONE, STARTED_PLAYING
+  }
+
   private static final long serialVersionUID = 2L;
-  private String feedUrl;
-  private String title;
-  private String imgUrl;
-  private String description;
+
   private String dataUrl;
-  private String guid;
-  private String flattrUrl;
-
-  private volatile DownloadState downloadState = DownloadState.NONE;
-  private FlattrState flattrState = FlattrState.NONE;
-  private int seekLocation;
-  private int duration;
-
-  private PlayState playState;
-
-  private boolean isNew = true;
-
+  private String description;
   private long downloadedBytes;
+  private volatile DownloadState downloadState = DownloadState.NONE;
+  private int duration;
+  private String feedUrl;
+  private FlattrState flattrState = FlattrState.NONE;
+  private String flattrUrl;
+  private String guid;
+  private String imgUrl;
+  private boolean isNew = true;
+  private PlayState playState;
+  private int seekLocation;
+  private String title;
   private long totalBytes;
 
-  public Episode(String feedUrl, String title, String imgUrl,
-      String description, String dataUrl, String guid, String flattrId) {
-    this.feedUrl = feedUrl;
-    this.title = title;
-    this.imgUrl = imgUrl;
-    this.description = description;
-    this.dataUrl = dataUrl;
-    this.guid = guid;
-    this.flattrUrl = flattrId;
-  }
+  @Override
+  public boolean equals(Object other) {
+    if (!(other instanceof Episode)) {
+      return false;
+    }
+    Episode casted = (Episode) other;
 
-  public String getFeedUrl() {
-    return feedUrl;
-  }
-
-  public EpisodeIdentifier getIdentifier() {
-    return new EpisodeIdentifier(feedUrl, guid);
-  }
-
-  public String getFileLocation() {
-    String urlStr = getDataUrl();
-    String[] splitted = urlStr.split("/");
-    return Math.abs(urlStr.hashCode()) + splitted[splitted.length - 1];
+    return casted.getIdentifier().equals(getIdentifier());
   }
 
   /**
-   * Human-readable episode title.
+   * Where to download the audio data of this episode.
    */
-  public String getTitle() {
-    return title;
-  }
-
-  /**
-   * URL of the episode icon. Empty string if none.
-   */
-  public String getImgUrl() {
-    return imgUrl;
+  public String getDataUrl() {
+    return dataUrl;
   }
 
   /**
@@ -98,89 +94,14 @@ public class Episode implements Serializable {
   }
 
   /**
-   * Where to download the audio data of this episode.
+   * Gets the total download size of this episode. Currently only available
+   * after starting a download.
    */
-  public String getDataUrl() {
-    return dataUrl;
+  public long getDownloadedBytes() {
+    return downloadedBytes;
   }
-
-  public boolean hasFlattr() {
-    return !("".equals(flattrUrl));
-  }
-
-  public FlattrState getFlattrState() {
-    return flattrState;
-  }
-
-  public void setFlattrState(FlattrState flattrState) {
-    this.flattrState = flattrState;
-    App.get().getEventBus().fireEvent(new FlattrStateEvent());
-  }
-
-  /**
-   * Create a new, mutable Episode.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  /**
-   * Returns the GUID (globally unique identifier) of this episode. Identifies
-   * an episode uniquely in a feed.
-   */
-  public String getGuid() {
-    return guid;
-  }
-
-  public String getFlattrUrl() {
-    return flattrUrl;
-  }
-
-  /**
-   * Which download state this episode is currently in.
-   */
-  public enum DownloadState {
-    NONE, DOWNLOADING, PAUSED, ERROR, FINISHED
-  }
-
-  /**
-   * Which state of playing the episode is currently in.
-   */
-  public enum PlayState {
-    NONE, STARTED_PLAYING, FINISHED
-  }
-
-  /**
-   * Which state of flattring the episode is currently in.
-   */
-  public enum FlattrState {
-    NONE, ENQUEUED, ERROR, FLATTRED
-  }
-
-  /**
-   * Whether this episode is "new". Used to check if we have to add it to the
-   * queue.
-   */
-  public boolean isNew() {
-    return isNew;
-  }
-
-  /**
-   * Sets the "new" state to false.
-   */
-  public void setNoLongerNew() {
-    isNew = false;
-  }
-
   public DownloadState getDownloadState() {
     return downloadState;
-  }
-
-  /**
-   * Sets the duration of this episode in milliseconds.
-   */
-  public void setDuration(int duration) {
-    this.duration = duration;
   }
 
   /**
@@ -191,34 +112,45 @@ public class Episode implements Serializable {
     return duration;
   }
 
+  public String getFeedUrl() {
+    return feedUrl;
+  }
+
+  public String getFileLocation() {
+    String urlStr = getDataUrl();
+    String[] splitted = urlStr.split("/");
+    return Math.abs(urlStr.hashCode()) + splitted[splitted.length - 1];
+  }
+
+  public FlattrState getFlattrState() {
+    return flattrState;
+  }
+
+  public String getFlattrUrl() {
+    return flattrUrl;
+  }
+
   /**
-   * Sets the download state of this episode. May fire an
-   * {@link EpisodeDownloadStateEvent} as a side-effect.
-   * 
-   * @param downloadState
+   * Returns the GUID (globally unique identifier) of this episode. Identifies
+   * an episode uniquely in a feed.
    */
-  public void setDownloadState(DownloadState downloadState) {
-    this.downloadState = downloadState;
-    App.get().getEventBus()
-        .fireEvent(new EpisodeDownloadStateEvent(getIdentifier()));
+  public String getGuid() {
+    return guid;
+  }
+
+  public EpisodeIdentifier getIdentifier() {
+    return new EpisodeIdentifier(feedUrl, guid);
+  }
+
+  /**
+   * URL of the episode icon. Empty string if none.
+   */
+  public String getImgUrl() {
+    return imgUrl;
   }
 
   public PlayState getPlayState() {
     return playState;
-  }
-
-  public void setPlayState(PlayState playState) {
-    this.playState = playState;
-  }
-
-  /**
-   * Sets the seek location (=how much the user has already listened to).
-   * 
-   * @param location
-   *          the location in milliseconds
-   */
-  public void setSeekLocation(int location) {
-    this.seekLocation = location;
   }
 
   /**
@@ -229,6 +161,55 @@ public class Episode implements Serializable {
    */
   public int getSeekLocation() {
     return seekLocation;
+  }
+
+  /**
+   * Human-readable episode title.
+   */
+  public String getTitle() {
+    return title;
+  }
+
+  /**
+   * Gets the total download size of this episode. Currently only available
+   * after starting a download (0 otherwise).
+   */
+  public long getTotalBytes() {
+    return totalBytes;
+  }
+
+  /**
+   * Whether this episode even comes with a
+   * 
+   * @return
+   */
+  public boolean hasDownload() {
+    return !dataUrl.equals("");
+  }
+
+  public boolean hasFlattr() {
+    return !("".equals(flattrUrl));
+  }
+
+  @Override
+  public int hashCode() {
+    return getIdentifier().hashCode();
+  }
+
+  /**
+   * Whether this episode is "new". Used to check if we have to add it to the
+   * queue.
+   */
+  public boolean isNew() {
+    return isNew;
+  }
+
+  public void setDataUrl(String dataUrl) {
+    this.dataUrl = dataUrl;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   /**
@@ -247,99 +228,71 @@ public class Episode implements Serializable {
   }
 
   /**
-   * Gets the total download size of this episode. Currently only available
-   * after starting a download (0 otherwise).
-   */
-  public long getTotalBytes() {
-    return totalBytes;
-  }
-
-  /**
-   * Gets the total download size of this episode. Currently only available
-   * after starting a download.
-   */
-  public long getDownloadedBytes() {
-    return downloadedBytes;
-  }
-
-  /**
-   * Whether this episode even comes with a
+   * Sets the download state of this episode. May fire an
+   * {@link EpisodeDownloadStateEvent} as a side-effect.
    * 
-   * @return
+   * @param downloadState
    */
-  public boolean hasDownload() {
-    return !dataUrl.equals("");
-  }
-
-  @Override
-  public int hashCode() {
-    return getIdentifier().hashCode();
-  }
-
-  @Override
-  public boolean equals(Object other) {
-    if (!(other instanceof Episode)) {
-      return false;
-    }
-    Episode casted = (Episode) other;
-
-    return casted.getIdentifier().equals(getIdentifier());
+  public void setDownloadState(DownloadState downloadState) {
+    this.downloadState = downloadState;
+    App.get().getEventBus()
+        .fireEvent(new EpisodeDownloadStateEvent(getIdentifier()));
   }
 
   /**
-   * A mutable version of {@link Episode}.
-   * 
-   * @author crazywater
+   * Sets the duration of this episode in milliseconds.
    */
-  public static class Builder {
-    private String feedUrl = "";
-    private String title = "";
-    private String imgUrl = "";
-    private String description = "";
-    private String dataUrl = "";
-    private String guid = "";
-    private String flattrUrl = "";
+  public void setDuration(int duration) {
+    this.duration = duration;
+  }
 
-    public Builder feedUrl(String feedUrl) {
-      this.feedUrl = feedUrl;
-      return this;
-    }
+  public void setFeedUrl(String feedUrl) {
+    this.feedUrl = feedUrl;
+  }
 
-    public Builder title(String title) {
-      this.title = title;
-      return this;
-    }
+  public void setFlattrState(FlattrState flattrState) {
+    this.flattrState = flattrState;
+    App.get().getEventBus().fireEvent(new FlattrStateEvent());
+  }
 
-    public Builder imgUrl(String imgUrl) {
-      this.imgUrl = imgUrl;
-      return this;
-    }
+  public void setFlattrUrl(String flattrUrl) {
+    this.flattrUrl = flattrUrl;
+  }
 
-    public Builder description(String description) {
-      this.description = description;
-      return this;
-    }
+  public void setGuid(String guid) {
+    this.guid = guid;
+  }
 
-    public Builder dataUrl(String dataUrl) {
-      this.dataUrl = dataUrl;
-      return this;
-    }
+  public void setImgUrl(String imgUrl) {
+    this.imgUrl = imgUrl;
+  }
 
-    public Builder guid(String guid) {
-      this.guid = guid;
-      return this;
-    }
+  public void setNew(boolean isNew) {
+    this.isNew = isNew;
+  }
 
-    public Builder flattrUrl(String flattrUrl) {
-      this.flattrUrl = flattrUrl;
-      return this;
-    }
+  /**
+   * Sets the "new" state to false.
+   */
+  public void setNoLongerNew() {
+    isNew = false;
+  }
 
-    public Episode build() {
-      // take the dataUrl as a GUID if none is specified
-      String ourGuid = (guid.equals("")) ? dataUrl : guid;
-      return new Episode(feedUrl, title, imgUrl, description, dataUrl, ourGuid,
-          flattrUrl);
-    }
+  public void setPlayState(PlayState playState) {
+    this.playState = playState;
+  }
+
+  /**
+   * Sets the seek location (=how much the user has already listened to).
+   * 
+   * @param location
+   *          the location in milliseconds
+   */
+  public void setSeekLocation(int location) {
+    this.seekLocation = location;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
   }
 }

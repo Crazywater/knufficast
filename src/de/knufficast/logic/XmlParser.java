@@ -44,8 +44,8 @@ public class XmlParser {
   private long timestamp;
   private String eTag;
 
-  private Feed.Builder feedBuilder;
-  private Episode.Builder episodeBuilder;
+  private Feed feed;
+  private Episode episode;
 
   private static final String FEED_TAG = "channel";
   private static final String ENCLOSURE_TAG = "enclosure";
@@ -139,26 +139,30 @@ public class XmlParser {
   private void openTag(String tag, Map<String, String> attributes) {
     currentTags.push(tag);
     if (tag.equals(FEED_TAG)) {
-      feedBuilder = Feed.builder().feedUrl(feedUrl).encoding(encoding)
-          .lastUpdated(timestamp).eTag(eTag);
+      feed = new Feed();
+      feed.setFeedUrl(feedUrl);
+      feed.setEncoding(encoding);
+      feed.setLastUpdated(timestamp);
+      feed.setETag(eTag);
     } else if (tag.equals(EPISODE_TAG)) {
-      episodeBuilder = Episode.builder().feedUrl(feedUrl);
+      episode = new Episode();
+      episode.setFeedUrl(feedUrl);
     } else if (tag.equals(IMAGE_TAG)) {
       String location = attributes.get(LOCATION_ATTRIBUTE);
       if (location != null) {
         if (FEED_TAG.equals(getParentTag())) {
-          feedBuilder.imgUrl(location);
+          feed.setImgUrl(location);
         } else if (EPISODE_TAG.equals(getParentTag())) {
-          episodeBuilder.imgUrl(location);
+          episode.setImgUrl(location);
         }
       }
     } else if (tag.equals(ENCLOSURE_TAG) && EPISODE_TAG.equals(getParentTag())) {
-      episodeBuilder.dataUrl(attributes.get(URL_ATTRIBUTE));
+      episode.setDataUrl(attributes.get(URL_ATTRIBUTE));
     } else if (tag.equals(LINK_TAG) && EPISODE_TAG.equals(getParentTag())) {
       if ("payment".equals(attributes.get(REL_ATTRIBUTE))) {
         String paymentLocation = attributes.get(LOCATION_ATTRIBUTE);
         if (paymentLocation != null && paymentLocation.contains("flattr")) {
-          episodeBuilder.flattrUrl(paymentLocation);
+          episode.setFlattrUrl(paymentLocation);
         }
       }
     }
@@ -173,12 +177,12 @@ public class XmlParser {
   private void closeTag(String tag) {
     currentTags.pop();
     if (tag.equals(FEED_TAG)) {
-      feeds.add(feedBuilder.build());
-      feedBuilder = null;
+      feeds.add(feed);
+      feed = null;
     }
     if (tag.equals(EPISODE_TAG)) {
-      feedBuilder.addEpisode(episodeBuilder.build());
-      episodeBuilder = null;
+      feed.addEpisode(episode);
+      episode = null;
     }
   }
 
@@ -193,16 +197,16 @@ public class XmlParser {
   private void tagText(String text) {
     String tag = currentTags.peek();
     if (tag.equals(TITLE_TAG) && EPISODE_TAG.equals(getParentTag())) {
-      episodeBuilder.title(text);
+      episode.setTitle(text);
     } else if (tag.equals(GUID_TAG) && EPISODE_TAG.equals(getParentTag())) {
-      episodeBuilder.guid(text);
+      episode.setGuid(text);
     } else if (tag.equals(TITLE_TAG) && FEED_TAG.equals(getParentTag())) {
-      feedBuilder.title(text);
+      feed.setTitle(text);
     } else if (tag.equals(DESCRIPTION_TAG)
         && EPISODE_TAG.equals(getParentTag())) {
-      episodeBuilder.description(text);
+      episode.setDescription(text);
     } else if (tag.equals(DESCRIPTION_TAG) && FEED_TAG.equals(getParentTag())) {
-      feedBuilder.description(text);
+      feed.setDescription(text);
     }
   }
 

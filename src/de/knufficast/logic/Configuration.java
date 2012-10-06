@@ -125,10 +125,7 @@ public class Configuration implements Serializable {
       Feed resultFeed = newFeed;
       boolean newEpisode = false;
       if (oldFeed != null) {
-        Feed.Builder mergeBuilder = Feed.builder();
-        mergeBuilder.importMetadata(newFeed);
-        newEpisode = mergeBuilder.mergeEpisodes(oldFeed, newFeed);
-        resultFeed = mergeBuilder.build();
+        newFeed.mergeEpisodes(oldFeed);
       }
       feedsByUrl.put(resultFeed.getFeedUrl(), resultFeed);
       if (newEpisode) {

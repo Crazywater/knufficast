@@ -17,7 +17,9 @@ package de.knufficast.logic.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Representation of a Feed. Contains {@link Episode}s.
@@ -28,41 +30,17 @@ import java.util.List;
 public class Feed implements Serializable {
   private static final long serialVersionUID = 1L;
 
-  private String title;
-  private List<Episode> episodes;
-  private String imgUrl;
-  private String feedUrl;
   private String description;
   private String encoding;
+  private List<Episode> episodes;
   private String eTag;
+  private String feedUrl;
+  private String imgUrl;
   private long lastUpdated;
+  private String title;
 
-  public Feed(String title, String feedUrl, List<Episode> episodes,
-      String imgUrl, String description, String encoding, String eTag,
-      long lastUpdated) {
-    this.title = title;
-    this.feedUrl = feedUrl;
-    this.episodes = episodes;
-    this.imgUrl = imgUrl;
-    this.description = description;
-    this.encoding = encoding;
-    this.lastUpdated = lastUpdated;
-    this.eTag = eTag;
-  }
-
-  /**
-   * Returns the human-readable title of this feed.
-   */
-  public String getTitle() {
-    return title;
-  }
-
-  /**
-   * Returns the URL of this feed. Currently used for identification purposes as
-   * well.
-   */
-  public String getFeedUrl() {
-    return feedUrl;
+  public void addEpisode(Episode episode) {
+    episodes.add(episode);
   }
 
   /**
@@ -73,47 +51,10 @@ public class Feed implements Serializable {
   }
 
   /**
-   * Returns the list of episodes of this feed. Changes in this list are not
-   * reflected in the feed itself.
-   */
-  public List<Episode> getEpisodes() {
-    return new ArrayList<Episode>(episodes);
-  }
-
-  /**
-   * Returns the URL of the icon of this feed.
-   */
-  public String getImgUrl() {
-    return imgUrl;
-  }
-  
-  /**
    * Returns the encoding of this feed (e.g. "UTF-8").
    */
   public String getEncoding() {
     return encoding;
-  }
-
-  /**
-   * Returns the "ETag" header of the last feed download, if any, or null. This
-   * header is used for asking the server if the feed has to be refreshed
-   * (re-downloaded).
-   */
-  public String getETag() {
-    return eTag;
-  }
-
-  public boolean hasEpisode(Episode episode) {
-    return episodes.contains(episode);
-  }
-
-  /**
-   * When the feed has been last updated, in UNIX time. This time is NOT the
-   * system time on the phone, but rather what the server supplied in its "Date"
-   * header. Used to check if we need to refresh the feed.
-   */
-  public long getLastUpdated() {
-    return lastUpdated;
   }
 
   public Episode getEpisode(String guid) {
@@ -126,105 +67,111 @@ public class Feed implements Serializable {
   }
 
   /**
-   * Creates a new mutable feed.
+   * Returns the list of episodes of this feed. Changes in this list are not
+   * reflected in the feed itself.
    */
-  public static Builder builder() {
-    return new Builder();
+  public List<Episode> getEpisodes() {
+    return new ArrayList<Episode>(episodes);
   }
 
   /**
-   * Mutable version of {@link Feed}.
-   * 
-   * @author crazywater
-   * 
+   * Returns the "ETag" header of the last feed download, if any, or null. This
+   * header is used for asking the server if the feed has to be refreshed
+   * (re-downloaded).
    */
-  public static class Builder {
-    private String title = "";
-    private String imgUrl = "";
-    private String feedUrl = "";
-    private String description = "";
-    private String encoding = "UTF-8";
-    private String eTag;
-    private long lastUpdated;
-    private List<Episode> episodes = new ArrayList<Episode>();
+  public String getETag() {
+    return eTag;
+  }
 
-    public Builder title(String title) {
-      this.title = title;
-      return this;
+  /**
+   * Returns the URL of this feed. Currently used for identification purposes as
+   * well.
+   */
+  public String getFeedUrl() {
+    return feedUrl;
+  }
+
+  /**
+   * Returns the URL of the icon of this feed.
+   */
+  public String getImgUrl() {
+    return imgUrl;
+  }
+
+  /**
+   * When the feed has been last updated, in UNIX time. This time is NOT the
+   * system time on the phone, but rather what the server supplied in its "Date"
+   * header. Used to check if we need to refresh the feed.
+   */
+  public long getLastUpdated() {
+    return lastUpdated;
+  }
+
+  /**
+   * Returns the human-readable title of this feed.
+   */
+  public String getTitle() {
+    return title;
+  }
+
+    public boolean hasEpisode(Episode episode) {
+      return episodes.contains(episode);
     }
 
-    public Builder imgUrl(String imgUrl) {
-      this.imgUrl = imgUrl;
-      return this;
+  /**
+  * Merges the episodes of the new and the old feed into this feed builder.
+  * {@link Episode} objects from the old feed are preferred if the episode
+  * appears in both the old and the new feed. New episodes not present in the
+  * old feed are added at the start, not at the end.
+  * 
+  * @return whether there were any episodes in the new feed that weren't in the
+  *         old feed
+  */
+ public boolean mergeEpisodes(Feed oldFeed) {
+  boolean hasNewEpisodes = false;
+  Set<Episode> newEpisodes = new HashSet<Episode>(getEpisodes());
+  episodes.clear();
+  for (Episode episode : newEpisodes) {
+    if (!oldFeed.hasEpisode(episode)) {
+      addEpisode(episode);
+      hasNewEpisodes = true;
     }
+  }
+  for (Episode episode : oldFeed.getEpisodes()) {
+    addEpisode(episode);
+  }
+  return hasNewEpisodes;
+ }
 
-    public Builder feedUrl(String feedUrl) {
-      this.feedUrl = feedUrl;
-      return this;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public Builder description(String description) {
-      this.description = description;
-      return this;
-    }
+  public void setEncoding(String encoding) {
+    this.encoding = encoding;
+  }
 
-    public Builder addEpisode(Episode episode) {
-      episodes.add(episode);
-      return this;
-    }
+  public void setEpisodes(List<Episode> episodes) {
+    this.episodes = episodes;
+  }
 
-    public Builder encoding(String encoding) {
-      this.encoding = encoding;
-      return this;
-    }
+  public void setETag(String eTag) {
+    this.eTag = eTag;
+  }
 
-    public Builder eTag(String eTag) {
-      this.eTag = eTag;
-      return this;
-    }
+  public void setFeedUrl(String feedUrl) {
+    this.feedUrl = feedUrl;
+  }
 
-    public Builder lastUpdated(long lastUpdated) {
-      this.lastUpdated = lastUpdated;
-      return this;
-    }
+  public void setImgUrl(String imgUrl) {
+    this.imgUrl = imgUrl;
+  }
 
-    public Builder importMetadata(Feed feed) {
-      this.title = feed.title;
-      this.feedUrl = feed.feedUrl;
-      this.imgUrl = feed.imgUrl;
-      this.description = feed.description;
-      this.encoding = feed.encoding;
-      this.eTag = feed.eTag;
-      this.lastUpdated = feed.lastUpdated;
-      return this;
-    }
+  public void setLastUpdated(long lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
 
-    /**
-     * Merges the episodes of the new and the old feed into this feed builder.
-     * {@link Episode} objects from the old feed are preferred if the episode
-     * appears in both the old and the new feed. New episodes not present in the
-     * old feed are added at the start, not at the end.
-     * 
-     * @return whether there were any episodes in the new feed that weren't in
-     *         the old feed
-     */
-    public boolean mergeEpisodes(Feed oldFeed, Feed newFeed) {
-      boolean newEpisodes = false;
-      for (Episode episode : newFeed.getEpisodes()) {
-        if (!oldFeed.hasEpisode(episode)) {
-          addEpisode(episode);
-          newEpisodes = true;
-        }
-      }
-      for (Episode episode : oldFeed.getEpisodes()) {
-        addEpisode(episode);
-      }
-      return newEpisodes;
-    }
-
-    public Feed build() {
-      return new Feed(title, feedUrl, episodes, imgUrl, description, encoding,
-          eTag, lastUpdated);
-    }
+  public void setTitle(String title) {
+    this.title = title;
   }
 }
