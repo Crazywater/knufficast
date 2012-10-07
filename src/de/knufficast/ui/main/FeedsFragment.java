@@ -33,7 +33,7 @@ import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
 import de.knufficast.events.NewImageEvent;
 import de.knufficast.logic.AddFeedTask;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.DBFeed;
 
 /**
  * Fragment in the main window that displays the "feeds" tab.
@@ -48,7 +48,7 @@ public class FeedsFragment extends BaseFragment implements
   private EventBus eventBus;
   private FeedsAdapter feedsAdapter;
 
-  private List<Feed> feeds = new ArrayList<Feed>();
+  private List<DBFeed> feeds = new ArrayList<DBFeed>();
 
   private CharSequence feedText;
 
@@ -88,12 +88,11 @@ public class FeedsFragment extends BaseFragment implements
     if (feedText != null) {
       addText.setText(feedText);
     }
-    final AddFeedTask.Presenter presenter = this;
     addButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View unused) {
         String input = addText.getText().toString();
-        new AddFeedTask(presenter, App.get().getConfiguration()).execute(input);
+        new AddFeedTask(FeedsFragment.this).execute(input);
       }
     });
 
@@ -164,7 +163,7 @@ public class FeedsFragment extends BaseFragment implements
   }
 
   @Override
-  public void feedClicked(Feed feed) {
+  public void feedClicked(DBFeed feed) {
     presenter.feedClicked(feed);
   }
 }

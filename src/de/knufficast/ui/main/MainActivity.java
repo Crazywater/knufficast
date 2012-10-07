@@ -30,8 +30,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import de.knufficast.App;
 import de.knufficast.R;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBFeed;
 import de.knufficast.logic.model.Queue;
 import de.knufficast.player.QueuePlayer;
 import de.knufficast.ui.episode.EpisodeDetailActivity;
@@ -193,17 +193,16 @@ public class MainActivity extends FragmentActivity implements
   }
 
   @Override
-  public void feedClicked(Feed feed) {
+  public void feedClicked(DBFeed feed) {
     Intent intent = new Intent(this, FeedDetailActivity.class);
-    intent.putExtra(FeedDetailActivity.FEED_URL_INTENT, feed.getFeedUrl());
+    intent.putExtra(FeedDetailActivity.FEED_ID_INTENT, feed.getId());
     startActivity(intent);
   }
 
   @Override
-  public void episodeClicked(Episode episode) {
+  public void episodeClicked(DBEpisode episode) {
     Intent intent = new Intent(this, EpisodeDetailActivity.class);
-    intent.putExtra(FeedDetailActivity.FEED_URL_INTENT, episode.getFeedUrl());
-    intent.putExtra(EpisodeDetailActivity.EPISODE_GUID_INTENT, episode.getGuid());
+    intent.putExtra(EpisodeDetailActivity.EPISODE_ID_INTENT, episode.getId());
     startActivity(intent);
   }
 
@@ -218,12 +217,12 @@ public class MainActivity extends FragmentActivity implements
   }
 
   @Override
-  public void moveEpisode(Episode episode, int to) {
+  public void moveEpisode(DBEpisode episode, int to) {
     queue.move(episode, to);
   }
 
   @Override
-  public void removeEpisode(Episode episode) {
+  public void removeEpisode(DBEpisode episode) {
     queue.remove(episode);
   }
 

@@ -26,8 +26,8 @@ import android.media.RemoteControlClient;
 import android.media.RemoteControlClient.MetadataEditor;
 import de.knufficast.App;
 import de.knufficast.logic.ImageCache;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBFeed;
 
 /**
  * Controls the RemoteControlClient for the media server (lock screen controls).
@@ -79,11 +79,10 @@ public class RemoteController {
   /**
    * Set the metadata of this episode according to the episode.
    */
-  public void updateMetadata(Episode episode, long duration) {
+  public void updateMetadata(DBEpisode episode, long duration) {
     if (remoteControlClient != null) {
       MetadataEditor editor = remoteControlClient.editMetadata(true);
-      Feed feed = App.get().getConfiguration()
-          .getFeed(episode.getIdentifier().getFeedId());
+      DBFeed feed = episode.getFeed();
 
       ImageCache imageCache = App.get().getImageCache();
       String imgUrl = episode.getImgUrl();

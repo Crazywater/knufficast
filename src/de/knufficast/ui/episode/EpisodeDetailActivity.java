@@ -40,13 +40,12 @@ import de.knufficast.events.FlattrStateEvent;
 import de.knufficast.events.Listener;
 import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.flattr.FlattrApi;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Episode.DownloadState;
-import de.knufficast.logic.model.Episode.FlattrState;
-import de.knufficast.logic.model.Episode.PlayState;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBEpisode.DownloadState;
+import de.knufficast.logic.model.DBEpisode.FlattrState;
+import de.knufficast.logic.model.DBEpisode.PlayState;
+import de.knufficast.logic.model.DBFeed;
 import de.knufficast.logic.model.Queue;
-import de.knufficast.ui.feed.FeedDetailActivity;
 import de.knufficast.ui.main.MainActivity;
 import de.knufficast.ui.settings.SettingsActivity;
 import de.knufficast.util.BooleanCallback;
@@ -60,10 +59,10 @@ import de.knufficast.watchers.QueueDownloader;
  * @author crazywater
  */
 public class EpisodeDetailActivity extends Activity {
-  public static final String EPISODE_GUID_INTENT = "episodeGuidIntent";
+  public static final String EPISODE_ID_INTENT = "episodeIdIntent";
 
-  private Episode episode;
-  private Feed feed;
+  private DBEpisode episode;
+  private DBFeed feed;
 
   private Queue queue;
   private EventBus eventBus;
@@ -85,7 +84,7 @@ public class EpisodeDetailActivity extends Activity {
   private Listener<EpisodeDownloadProgressEvent> downloadProgressListener = new Listener<EpisodeDownloadProgressEvent>() {
     @Override
     public void onEvent(EpisodeDownloadProgressEvent event) {
-      if (event.getIdentifier().equals(episode.getIdentifier())) {
+      if (event.getIdentifier() == episode.getId()) {
         updateDownloadState();
       }
     }
@@ -93,7 +92,7 @@ public class EpisodeDetailActivity extends Activity {
   private Listener<EpisodeDownloadStateEvent> downloadStateListener = new Listener<EpisodeDownloadStateEvent>() {
     @Override
     public void onEvent(EpisodeDownloadStateEvent event) {
-      if (event.getIdentifier().equals(episode.getIdentifier())) {
+      if (event.getIdentifier() == episode.getId()) {
         runOnUiThread(new Runnable() {
           @Override
           public void run() {
@@ -171,11 +170,9 @@ public class EpisodeDetailActivity extends Activity {
   @Override
   public void onStart() {
     super.onStart();
-    String episodeGuid = getIntent().getExtras().getString(EPISODE_GUID_INTENT);
-    String feedUrl = getIntent().getExtras().getString(
-        FeedDetailActivity.FEED_URL_INTENT);
-    feed = App.get().getConfiguration().getFeed(feedUrl);
-    episode = feed.getEpisode(episodeGuid);
+    Long episodeId = getIntent().getExtras().getLong(EPISODE_ID_INTENT);
+    episode = new DBEpisode(episodeId);
+    feed = episode.getFeed();
     setEpisode(episode);
     eventBus
         .addListener(EpisodeDownloadStateEvent.class, downloadStateListener);
@@ -278,7 +275,7 @@ public class EpisodeDetailActivity extends Activity {
     return super.onOptionsItemSelected(item);
   }
 
-  private void setEpisode(Episode episode) {
+  private void setEpisode(DBEpisode episode) {
     title.setText(episode.getTitle());
     String contentType = feed.getEncoding() == null ? "text/html"
         : "text/html; charset=" + feed.getEncoding();

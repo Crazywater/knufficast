@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import de.knufficast.App;
 import de.knufficast.events.FlattrQueueEvent;
-import de.knufficast.logic.model.Episode;
+import de.knufficast.logic.model.DBEpisode;
 
 /**
  * The queue of things left to flattr.
@@ -29,9 +29,9 @@ import de.knufficast.logic.model.Episode;
  * 
  */
 public class FlattrQueue {
-  private final Queue<Episode> episodes = new ConcurrentLinkedQueue<Episode>();
+  private final Queue<DBEpisode> episodes = new ConcurrentLinkedQueue<DBEpisode>();
 
-  public void enqueue(Episode episode) {
+  public void enqueue(DBEpisode episode) {
     if (!episodes.contains(episode)) {
       episodes.add(episode);
       App.get().getEventBus().fireEvent(new FlattrQueueEvent());
@@ -42,7 +42,7 @@ public class FlattrQueue {
     return episodes.isEmpty();
   }
 
-  public Episode pop() {
+  public DBEpisode pop() {
     return episodes.poll();
   }
 

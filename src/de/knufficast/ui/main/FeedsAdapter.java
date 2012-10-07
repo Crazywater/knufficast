@@ -29,22 +29,22 @@ import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
 import de.knufficast.logic.ImageCache;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.DBFeed;
 
 /**
- * An adapter for displaying {@link Feed}s in a ListView.
+ * An adapter for displaying {@link DBFeed}s in a ListView.
  * 
  * @author crazywater
  * 
  */
-public class FeedsAdapter extends ArrayAdapter<Feed> {
+public class FeedsAdapter extends ArrayAdapter<DBFeed> {
   private final Context context;
   private final int layoutResourceId;
-  private final List<Feed> data;
+  private final List<DBFeed> data;
   private final Presenter presenter;
   private final ImageCache imageCache;
 
-  public FeedsAdapter(Context context, int layoutResourceId, List<Feed> data,
+  public FeedsAdapter(Context context, int layoutResourceId, List<DBFeed> data,
       Presenter presenter) {
     super(context, layoutResourceId, data);
     this.layoutResourceId = layoutResourceId;
@@ -64,7 +64,7 @@ public class FeedsAdapter extends ArrayAdapter<Feed> {
       row = inflater.inflate(layoutResourceId, parent, false);
     }
 
-    final Feed feed = data.get(position);
+    final DBFeed feed = data.get(position);
 
     row.setOnClickListener(new OnClickListener() {
       @Override
@@ -87,6 +87,6 @@ public class FeedsAdapter extends ArrayAdapter<Feed> {
    * 
    */
   public interface Presenter {
-    void feedClicked(Feed feed);
+    void feedClicked(DBFeed feed);
   }
 }

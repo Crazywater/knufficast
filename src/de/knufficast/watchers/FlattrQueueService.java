@@ -21,8 +21,8 @@ import android.util.Log;
 import de.knufficast.App;
 import de.knufficast.flattr.FlattrApi;
 import de.knufficast.flattr.FlattrQueue;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Episode.FlattrState;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBEpisode.FlattrState;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.NetUtil;
 
@@ -46,7 +46,7 @@ public class FlattrQueueService extends IntentService {
     if (netUtil.isOnline()) {
       final FlattrQueue flattrQueue = App.get().getFlattrQueue();
       while (!flattrQueue.isEmpty()) {
-        final Episode episode = flattrQueue.pop();
+        final DBEpisode episode = flattrQueue.pop();
         flattrApi.flattr(episode.getFlattrUrl(),
             new BooleanCallback<String, String>() {
               @Override

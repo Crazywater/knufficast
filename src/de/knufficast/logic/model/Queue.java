@@ -15,7 +15,6 @@
  ******************************************************************************/
 package de.knufficast.logic.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -33,15 +32,14 @@ import de.knufficast.events.QueueRemovedEvent;
  * 
  * @author crazywater
  */
-public class Queue implements Serializable {
-  private static final long serialVersionUID = 1L;
-  private Set<Episode> queue = new LinkedHashSet<Episode>();
+public class Queue {
+  private Set<DBEpisode> queue = new LinkedHashSet<DBEpisode>();
 
   /**
    * Adds a new episode to the queue. Fires a {@link QueueChangedEvent} as a
    * side-effect.
    */
-  public synchronized void add(Episode ep) {
+  public synchronized void add(DBEpisode ep) {
     if (queue.contains(ep)) {
       return;
     }
@@ -54,11 +52,11 @@ public class Queue implements Serializable {
    * Moves the episode to the specified index (0 being the top of the queue).
    * May fire a {@link QueueChangedEvent} as a side-effect.
    */
-  public synchronized void move(Episode ep, int to) {
-    Set<Episode> newQueue = new LinkedHashSet<Episode>();
-    Iterator<Episode> it = queue.iterator();
+  public synchronized void move(DBEpisode ep, int to) {
+    Set<DBEpisode> newQueue = new LinkedHashSet<DBEpisode>();
+    Iterator<DBEpisode> it = queue.iterator();
     for (int i = 0; i < to;) {
-      Episode next = it.next();
+      DBEpisode next = it.next();
       if (next != ep) {
         newQueue.add(next);
         i++;
@@ -66,14 +64,14 @@ public class Queue implements Serializable {
     }
     newQueue.add(ep);
     while (it.hasNext()) {
-      Episode next = it.next();
+      DBEpisode next = it.next();
       if (next != ep) {
         newQueue.add(next);
       }
     }
-    Episode oldTop = queue.iterator().next();
+    DBEpisode oldTop = queue.iterator().next();
     queue = newQueue;
-    Episode newTop = queue.iterator().next();
+    DBEpisode newTop = queue.iterator().next();
     App.get().getEventBus().fireEvent(new QueueChangedEvent(oldTop != newTop));
   }
 
@@ -81,7 +79,7 @@ public class Queue implements Serializable {
    * Removes an episode from the queue. May fire a {@link QueueChangedEvent} as
    * a side-effect.
    */
-  public synchronized void remove(Episode ep) {
+  public synchronized void remove(DBEpisode ep) {
     boolean topChanged = ep == queue.iterator().next();
     if (!queue.contains(ep)) {
       return;
@@ -94,14 +92,14 @@ public class Queue implements Serializable {
   /**
    * Returns the first element in the queue or null if the queue is empty.
    */
-  public synchronized Episode peek() {
+  public synchronized DBEpisode peek() {
     if (queue.isEmpty()) {
       return null;
     }
     return queue.iterator().next();
   }
 
-  public boolean contains(Episode episode) {
+  public boolean contains(DBEpisode episode) {
     return queue.contains(episode);
   }
 
@@ -109,8 +107,8 @@ public class Queue implements Serializable {
    * Returns the queue as a list, top of the queue at index 0. Changes to this
    * list are not reflected in the queue.
    */
-  public synchronized List<Episode> asList() {
-    return new ArrayList<Episode>(queue);
+  public synchronized List<DBEpisode> asList() {
+    return new ArrayList<DBEpisode>(queue);
   }
 
   /**
@@ -118,11 +116,11 @@ public class Queue implements Serializable {
    * empty. May fire a {@link QueueChangedEvent} and {@link QueuePoppedEvent} as
    * a side-effect.
    */
-  public synchronized Episode pop() {
+  public synchronized DBEpisode pop() {
     if (queue.isEmpty()) {
       return null;
     }
-    Episode head = queue.iterator().next();
+    DBEpisode head = queue.iterator().next();
     queue.remove(head);
     EventBus eventBus = App.get().getEventBus();
     eventBus.fireEvent(new QueueChangedEvent(true));
@@ -136,9 +134,9 @@ public class Queue implements Serializable {
    */
   public synchronized void rotateDownward() {
     if (queue.size() > 1) {
-      Set<Episode> newQueue = new LinkedHashSet<Episode>();
-      Iterator<Episode> it = queue.iterator();
-      Episode bottom = it.next();
+      Set<DBEpisode> newQueue = new LinkedHashSet<DBEpisode>();
+      Iterator<DBEpisode> it = queue.iterator();
+      DBEpisode bottom = it.next();
       while (it.hasNext()) {
         bottom = it.next();
       }
@@ -157,9 +155,9 @@ public class Queue implements Serializable {
    */
   public synchronized void rotateUpward() {
     if (queue.size() > 1) {
-      Set<Episode> newQueue = new LinkedHashSet<Episode>();
-      Iterator<Episode> it = queue.iterator();
-      Episode head = it.next();
+      Set<DBEpisode> newQueue = new LinkedHashSet<DBEpisode>();
+      Iterator<DBEpisode> it = queue.iterator();
+      DBEpisode head = it.next();
       while (it.hasNext()) {
         newQueue.add(it.next());
       }
@@ -171,5 +169,26 @@ public class Queue implements Serializable {
 
   public boolean isEmpty() {
     return queue.isEmpty();
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for (DBEpisode ep : queue) {
+      sb.append(ep.getId());
+      sb.append(",");
+    }
+    return sb.toString();
+  }
+
+  public void fromString(String string) {
+    queue.clear();
+    String[] ids = string.split(",");
+    for (String idStr : ids) {
+      if (!"".equals(idStr)) {
+        long id = Long.valueOf(idStr).longValue();
+        queue.add(new DBEpisode(id));
+      }
+    }
   }
 }

@@ -28,8 +28,8 @@ import de.knufficast.events.PlayerErrorEvent;
 import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.events.PlayerStateChangeEvent;
 import de.knufficast.events.QueueChangedEvent;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Episode.DownloadState;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBEpisode.DownloadState;
 import de.knufficast.logic.model.Queue;
 import de.knufficast.player.PlayerService.PlayerBinder;
 import de.knufficast.util.Callback;
@@ -110,8 +110,7 @@ public class QueuePlayer {
   private final Listener<EpisodeDownloadStateEvent> topDownloadListener = new Listener<EpisodeDownloadStateEvent>() {
     @Override
     public void onEvent(EpisodeDownloadStateEvent event) {
-      if (!queue.isEmpty()
-          && event.getIdentifier().equals(queue.peek().getIdentifier())) {
+      if (!queue.isEmpty() && event.getIdentifier() == queue.peek().getId()) {
         topOfQueueChanged();
       }
     }
@@ -171,7 +170,7 @@ public class QueuePlayer {
       int progress = 0;
       int total = 0;
       if (!queue.isEmpty()) {
-        Episode next = queue.peek();
+        DBEpisode next = queue.peek();
         if (next.getDownloadState() == DownloadState.FINISHED) {
           player.setEpisode(next);
         } else {

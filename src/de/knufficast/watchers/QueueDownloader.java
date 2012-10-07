@@ -23,8 +23,8 @@ import android.util.Pair;
 import de.knufficast.App;
 import de.knufficast.logic.Configuration;
 import de.knufficast.logic.DownloadTask;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Episode.DownloadState;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBEpisode.DownloadState;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.Callback;
 import de.knufficast.util.NetUtil;
@@ -49,7 +49,7 @@ public class QueueDownloader {
   public void restartDownloads() {
     Configuration config = App.get().getConfiguration();
     if (netUtil.isOnWifi() || !config.downloadNeedsWifi()) {
-      for (final Episode episode : config.getQueue().asList()) {
+      for (final DBEpisode episode : App.get().getQueue().asList()) {
         if (episode.getDownloadState() != DownloadState.FINISHED
             && episode.getDownloadState() != DownloadState.DOWNLOADING) {
           final String url = episode.getDataUrl();
@@ -78,7 +78,7 @@ public class QueueDownloader {
     }
   }
 
-  public void deleteDownload(Episode episode) {
+  public void deleteDownload(DBEpisode episode) {
     File file = new ExternalFileUtil(context).resolveFile(episode
         .getFileLocation());
     if (file.exists()) {

@@ -15,21 +15,21 @@
  ******************************************************************************/
 package de.knufficast.logic.model;
 
-import java.io.Serializable;
-
 import de.knufficast.App;
 import de.knufficast.events.EpisodeDownloadProgressEvent;
 import de.knufficast.events.EpisodeDownloadStateEvent;
 import de.knufficast.events.FlattrStateEvent;
 
 /**
- * An entry in a {@link Feed}. This doesn't necessarily mean that there is an
+ * An entry in a {@link DBFeed}. This doesn't necessarily mean that there is an
  * audio file attached - use {@link #hasDownload} to check for that.
  * 
  * @author crazywater
  * 
  */
-public class Episode implements Serializable {
+public class DBEpisode {
+  private static final String TABLE = SQLiteHelper.TABLE_EPISODES;
+
   /**
    * Which download state this episode is currently in.
    */
@@ -51,46 +51,40 @@ public class Episode implements Serializable {
     FINISHED, NONE, STARTED_PLAYING
   }
 
-  private static final long serialVersionUID = 2L;
+  private Database db;
+  private final long id;
 
-  private String dataUrl;
-  private String description;
-  private long downloadedBytes;
-  private volatile DownloadState downloadState = DownloadState.NONE;
-  private int duration;
-  private String feedUrl;
-  private FlattrState flattrState = FlattrState.NONE;
-  private String flattrUrl;
-  private String guid;
-  private String imgUrl;
-  private boolean isNew = true;
-  private PlayState playState;
-  private int seekLocation;
-  private String title;
-  private long totalBytes;
+  public DBEpisode(long id) {
+    this.id = id;
+    db = App.get().getDB();
+  }
 
   @Override
   public boolean equals(Object other) {
-    if (!(other instanceof Episode)) {
+    if (!(other instanceof DBEpisode)) {
       return false;
     }
-    Episode casted = (Episode) other;
+    DBEpisode casted = (DBEpisode) other;
 
-    return casted.getIdentifier().equals(getIdentifier());
+    return id == casted.id;
+  }
+
+  public long getId() {
+    return id;
   }
 
   /**
    * Where to download the audio data of this episode.
    */
   public String getDataUrl() {
-    return dataUrl;
+    return db.get(TABLE, id, SQLiteHelper.C_EP_DATA_URL);
   }
 
   /**
    * XML-description or human-readable text description of the episode.
    */
   public String getDescription() {
-    return description;
+    return db.get(TABLE, id, SQLiteHelper.C_EP_DESCRIPTION);
   }
 
   /**
@@ -98,10 +92,13 @@ public class Episode implements Serializable {
    * after starting a download.
    */
   public long getDownloadedBytes() {
-    return downloadedBytes;
+    String dbStr = db.get(TABLE, id, SQLiteHelper.C_EP_DOWNLOADED_BYTES);
+    return Long.valueOf(dbStr).longValue();
   }
+
   public DownloadState getDownloadState() {
-    return downloadState;
+    String dbStr = db.get(TABLE, id, SQLiteHelper.C_EP_DOWNLOAD_STATE);
+    return DownloadState.valueOf(dbStr);
   }
 
   /**
@@ -109,11 +106,8 @@ public class Episode implements Serializable {
    * episode has never been prepared by the QueuePlayer.
    */
   public int getDuration() {
-    return duration;
-  }
-
-  public String getFeedUrl() {
-    return feedUrl;
+    String dbStr = db.get(TABLE, id, SQLiteHelper.C_EP_DURATION);
+    return Integer.valueOf(dbStr).intValue();
   }
 
   public String getFileLocation() {
@@ -123,11 +117,12 @@ public class Episode implements Serializable {
   }
 
   public FlattrState getFlattrState() {
-    return flattrState;
+    String dbStr = db.get(TABLE, id, SQLiteHelper.C_EP_FLATTR_STATE);
+    return FlattrState.valueOf(dbStr);
   }
 
   public String getFlattrUrl() {
-    return flattrUrl;
+    return db.get(TABLE, id, SQLiteHelper.C_EP_FLATTR_URL);
   }
 
   /**
@@ -135,22 +130,19 @@ public class Episode implements Serializable {
    * an episode uniquely in a feed.
    */
   public String getGuid() {
-    return guid;
-  }
-
-  public EpisodeIdentifier getIdentifier() {
-    return new EpisodeIdentifier(feedUrl, guid);
+    return db.get(TABLE, id, SQLiteHelper.C_EP_GUID);
   }
 
   /**
    * URL of the episode icon. Empty string if none.
    */
   public String getImgUrl() {
-    return imgUrl;
+    return db.get(TABLE, id, SQLiteHelper.C_EP_IMG_URL);
   }
 
   public PlayState getPlayState() {
-    return playState;
+    String dbStr = db.get(TABLE, id, SQLiteHelper.C_EP_PLAY_STATE);
+    return PlayState.valueOf(dbStr);
   }
 
   /**
@@ -160,14 +152,15 @@ public class Episode implements Serializable {
    *          the location in milliseconds
    */
   public int getSeekLocation() {
-    return seekLocation;
+    String dbStr = db.get(TABLE, id, SQLiteHelper.C_EP_SEEK_LOCATION);
+    return Integer.valueOf(dbStr).intValue();
   }
 
   /**
    * Human-readable episode title.
    */
   public String getTitle() {
-    return title;
+    return db.get(TABLE, id, SQLiteHelper.C_EP_TITLE);
   }
 
   /**
@@ -175,7 +168,8 @@ public class Episode implements Serializable {
    * after starting a download (0 otherwise).
    */
   public long getTotalBytes() {
-    return totalBytes;
+    String dbStr = db.get(TABLE, id, SQLiteHelper.C_EP_TOTAL_BYTES);
+    return Long.valueOf(dbStr).longValue();
   }
 
   /**
@@ -184,16 +178,16 @@ public class Episode implements Serializable {
    * @return
    */
   public boolean hasDownload() {
-    return !dataUrl.equals("");
+    return !getDataUrl().equals("");
   }
 
   public boolean hasFlattr() {
-    return !("".equals(flattrUrl));
+    return !("".equals(getFlattrUrl()));
   }
 
   @Override
   public int hashCode() {
-    return getIdentifier().hashCode();
+    return Long.valueOf(id).hashCode();
   }
 
   /**
@@ -201,15 +195,16 @@ public class Episode implements Serializable {
    * queue.
    */
   public boolean isNew() {
-    return isNew;
+    String dbStr = db.get(TABLE, id, SQLiteHelper.C_EP_IS_NEW);
+    return dbStr == "1";
   }
 
   public void setDataUrl(String dataUrl) {
-    this.dataUrl = dataUrl;
+    db.put(TABLE, id, SQLiteHelper.C_EP_DATA_URL, dataUrl);
   }
 
   public void setDescription(String description) {
-    this.description = description;
+    db.put(TABLE, id, SQLiteHelper.C_EP_DESCRIPTION, description);
   }
 
   /**
@@ -221,10 +216,10 @@ public class Episode implements Serializable {
    *          total size of the episode download
    */
   public void setDownloadProgress(long downloadedBytes, long totalBytes) {
-    this.downloadedBytes = downloadedBytes;
-    this.totalBytes = totalBytes;
-    App.get().getEventBus()
-        .fireEvent(new EpisodeDownloadProgressEvent(getIdentifier()));
+    db.put(TABLE, id, SQLiteHelper.C_EP_DOWNLOADED_BYTES,
+        String.valueOf(downloadedBytes));
+    db.put(TABLE, id, SQLiteHelper.C_EP_TOTAL_BYTES, String.valueOf(totalBytes));
+    App.get().getEventBus().fireEvent(new EpisodeDownloadProgressEvent(id));
   }
 
   /**
@@ -234,52 +229,40 @@ public class Episode implements Serializable {
    * @param downloadState
    */
   public void setDownloadState(DownloadState downloadState) {
-    this.downloadState = downloadState;
-    App.get().getEventBus()
-        .fireEvent(new EpisodeDownloadStateEvent(getIdentifier()));
+    db.put(TABLE, id, SQLiteHelper.C_EP_DOWNLOAD_STATE, downloadState.name());
+    App.get().getEventBus().fireEvent(new EpisodeDownloadStateEvent(id));
   }
 
   /**
    * Sets the duration of this episode in milliseconds.
    */
   public void setDuration(int duration) {
-    this.duration = duration;
-  }
-
-  public void setFeedUrl(String feedUrl) {
-    this.feedUrl = feedUrl;
+    db.put(TABLE, id, SQLiteHelper.C_EP_DURATION, String.valueOf(duration));
   }
 
   public void setFlattrState(FlattrState flattrState) {
-    this.flattrState = flattrState;
+    db.put(TABLE, id, SQLiteHelper.C_EP_FLATTR_STATE, flattrState.name());
     App.get().getEventBus().fireEvent(new FlattrStateEvent());
   }
 
   public void setFlattrUrl(String flattrUrl) {
-    this.flattrUrl = flattrUrl;
+    db.put(TABLE, id, SQLiteHelper.C_EP_FLATTR_URL, flattrUrl);
   }
 
   public void setGuid(String guid) {
-    this.guid = guid;
+    db.put(TABLE, id, SQLiteHelper.C_EP_GUID, guid);
   }
 
   public void setImgUrl(String imgUrl) {
-    this.imgUrl = imgUrl;
+    db.put(TABLE, id, SQLiteHelper.C_EP_IMG_URL, imgUrl);
   }
 
   public void setNew(boolean isNew) {
-    this.isNew = isNew;
-  }
-
-  /**
-   * Sets the "new" state to false.
-   */
-  public void setNoLongerNew() {
-    isNew = false;
+    db.put(TABLE, id, SQLiteHelper.C_EP_IS_NEW, isNew ? "1" : "0");
   }
 
   public void setPlayState(PlayState playState) {
-    this.playState = playState;
+    db.put(TABLE, id, SQLiteHelper.C_EP_PLAY_STATE, playState.name());
   }
 
   /**
@@ -289,10 +272,15 @@ public class Episode implements Serializable {
    *          the location in milliseconds
    */
   public void setSeekLocation(int location) {
-    this.seekLocation = location;
+    db.put(TABLE, id, SQLiteHelper.C_EP_SEEK_LOCATION, String.valueOf(location));
   }
 
   public void setTitle(String title) {
-    this.title = title;
+    db.put(TABLE, id, SQLiteHelper.C_EP_TITLE, title);
+  }
+
+  public DBFeed getFeed() {
+    long feedId = db.getLong(TABLE, id, SQLiteHelper.C_EP_FEED_ID);
+    return new DBFeed(feedId);
   }
 }

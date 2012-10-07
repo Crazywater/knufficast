@@ -31,14 +31,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBFeed;
 import de.knufficast.ui.episode.EpisodeDetailActivity;
 import de.knufficast.ui.main.MainActivity;
 import de.knufficast.ui.settings.SettingsActivity;
 
 /**
- * Activity that displays the details of a {@link Feed}, including the list of
+ * Activity that displays the details of a {@link DBFeed}, including the list of
  * episodes.
  * 
  * @author crazywater
@@ -46,10 +46,10 @@ import de.knufficast.ui.settings.SettingsActivity;
  */
 public class FeedDetailActivity extends Activity implements
     EpisodesAdapter.Presenter {
-  public static final String FEED_URL_INTENT = "feedUrlIntent";
+  public static final String FEED_ID_INTENT = "feedIdIntent";
 
   private boolean descriptionVisible = false;
-  private String feedUrl;
+  private DBFeed feed;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -69,8 +69,8 @@ public class FeedDetailActivity extends Activity implements
   @Override
   public void onStart() {
     super.onStart();
-    String feedUrl = getIntent().getExtras().getString(FEED_URL_INTENT);
-    Feed feed = App.get().getConfiguration().getFeed(feedUrl);
+    long feedId = getIntent().getExtras().getLong(FEED_ID_INTENT);
+    DBFeed feed = new DBFeed(feedId);
     setFeed(feed);
   }
 
@@ -100,7 +100,7 @@ public class FeedDetailActivity extends Activity implements
               new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                  App.get().getConfiguration().deleteFeed(feedUrl);
+                  App.get().deleteFeed(feed);
                   finish();
                 }
               }).setNegativeButton(R.string.delete_feed_cancel, null).show();
@@ -116,8 +116,8 @@ public class FeedDetailActivity extends Activity implements
     return true;
   }
 
-  private void setFeed(Feed feed) {
-    feedUrl = feed.getFeedUrl();
+  private void setFeed(DBFeed feed) {
+    this.feed = feed;
     TextView descriptionText = (TextView) findViewById(R.id.feed_description_text);
     descriptionText.setText(feed.getDescription());
     TextView titleText = (TextView) findViewById(R.id.feed_title_text);
@@ -137,11 +137,9 @@ public class FeedDetailActivity extends Activity implements
   }
 
   @Override
-  public void episodeClicked(Episode episode) {
+  public void episodeClicked(DBEpisode episode) {
     Intent intent = new Intent(this, EpisodeDetailActivity.class);
-    intent.putExtra(FEED_URL_INTENT, feedUrl);
-    intent.putExtra(EpisodeDetailActivity.EPISODE_GUID_INTENT,
-        episode.getGuid());
+    intent.putExtra(EpisodeDetailActivity.EPISODE_ID_INTENT, episode.getId());
     startActivity(intent);
   }
 }

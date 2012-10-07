@@ -23,9 +23,9 @@ import de.knufficast.events.FlattrQueueEvent;
 import de.knufficast.events.Listener;
 import de.knufficast.events.QueuePoppedEvent;
 import de.knufficast.flattr.FlattrQueue;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Episode.FlattrState;
-import de.knufficast.logic.model.Episode.PlayState;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBEpisode.FlattrState;
+import de.knufficast.logic.model.DBEpisode.PlayState;
 
 /**
  * A watcher that starts the {@link FlattrQueueService} whenever something new
@@ -47,7 +47,7 @@ public class FlattrWatcher {
   private final Listener<QueuePoppedEvent> queuePoppedListener = new Listener<QueuePoppedEvent>() {
     @Override
     public void onEvent(QueuePoppedEvent event) {
-      Episode ep = event.getEpisode();
+      DBEpisode ep = event.getEpisode();
       if (ep.getFlattrState() == FlattrState.NONE
           && ep.getPlayState() == PlayState.FINISHED
           && App.get().getConfiguration().autoFlattr()) {

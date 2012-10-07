@@ -27,25 +27,26 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.DBFeed;
+import de.knufficast.logic.model.XMLEpisode;
+import de.knufficast.logic.model.XMLFeed;
 
 /**
- * A parser for XML podcast feeds. Produces {@link Feed} objects.
+ * A parser for XML podcast feeds. Produces {@link DBFeed} objects.
  * 
  * @author crazywater
  * 
  */
 public class XmlParser {
   private Stack<String> currentTags;
-  private List<Feed> feeds;
+  private List<XMLFeed> feeds;
   private String feedUrl;
   private String encoding;
   private long timestamp;
   private String eTag;
 
-  private Feed feed;
-  private Episode episode;
+  private XMLFeed feed;
+  private XMLEpisode episode;
 
   private static final String FEED_TAG = "channel";
   private static final String ENCLOSURE_TAG = "enclosure";
@@ -80,7 +81,7 @@ public class XmlParser {
   public void parseFrom(InputStream xml, String feedUrl, long timestamp,
       String eTag)
       throws XmlPullParserException, IOException {
-    feeds = new ArrayList<Feed>();
+    feeds = new ArrayList<XMLFeed>();
     currentTags = new Stack<String>();
     this.feedUrl = feedUrl;
     this.timestamp = timestamp;
@@ -124,7 +125,7 @@ public class XmlParser {
    * Returns the parsed feeds from a previous call to {@link #parseFrom} or null
    * if no call was made.
    */
-  public List<Feed> getFeeds() {
+  public List<XMLFeed> getFeeds() {
     return feeds;
   }
 
@@ -139,14 +140,13 @@ public class XmlParser {
   private void openTag(String tag, Map<String, String> attributes) {
     currentTags.push(tag);
     if (tag.equals(FEED_TAG)) {
-      feed = new Feed();
-      feed.setFeedUrl(feedUrl);
+      feed = new XMLFeed();
+      feed.setDataUrl(feedUrl);
       feed.setEncoding(encoding);
       feed.setLastUpdated(timestamp);
       feed.setETag(eTag);
     } else if (tag.equals(EPISODE_TAG)) {
-      episode = new Episode();
-      episode.setFeedUrl(feedUrl);
+      episode = new XMLEpisode();
     } else if (tag.equals(IMAGE_TAG)) {
       String location = attributes.get(LOCATION_ATTRIBUTE);
       if (location != null) {

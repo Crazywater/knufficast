@@ -19,7 +19,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import de.knufficast.R;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.DBFeed;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.watchers.UpdaterService;
 
@@ -41,14 +41,14 @@ public class ToastRefresherTask extends AsyncTask<Void, String, Boolean> {
     this.context = context;
   }
 
-  private BooleanCallback<Feed, Feed> refresherCallback = new BooleanCallback<Feed, Feed>() {
+  private BooleanCallback<DBFeed, DBFeed> refresherCallback = new BooleanCallback<DBFeed, DBFeed>() {
     @Override
-    public void success(Feed feed) {
+    public void success(DBFeed feed) {
       publishProgress(feed.getTitle(), SUCCESS);
     }
 
     @Override
-    public void fail(Feed feed) {
+    public void fail(DBFeed feed) {
       publishProgress(feed.getTitle(), FAILURE);
     }
   };

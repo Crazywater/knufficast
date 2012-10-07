@@ -30,8 +30,8 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import de.knufficast.App;
 import de.knufficast.events.PlayerErrorEvent;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Episode.PlayState;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBEpisode.PlayState;
 import de.knufficast.util.Callback;
 import de.knufficast.util.file.ExternalFileUtil;
 
@@ -44,7 +44,7 @@ import de.knufficast.util.file.ExternalFileUtil;
 public class PlayerService extends Service {
   private MediaPlayer mediaPlayer;
   private final IBinder binder = new PlayerBinder();
-  private Episode episode;
+  private DBEpisode episode;
   private boolean prepared;
 
   private final OnErrorListener onErrorListener = new OnErrorListener() {
@@ -59,7 +59,7 @@ public class PlayerService extends Service {
   /**
    * Prepares the player to play the episode.
    */
-  public void setEpisode(Episode episode) {
+  public void setEpisode(DBEpisode episode) {
     if (episode == this.episode) {
       return;
     }

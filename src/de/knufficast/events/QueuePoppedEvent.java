@@ -15,7 +15,7 @@
  ******************************************************************************/
 package de.knufficast.events;
 
-import de.knufficast.logic.model.Episode;
+import de.knufficast.logic.model.DBEpisode;
 
 /**
  * An event that is fired when the {@link Queue} has its head removed.
@@ -23,13 +23,13 @@ import de.knufficast.logic.model.Episode;
  * @author crazywater
  */
 public class QueuePoppedEvent implements Event {
-  private Episode episode;
+  private DBEpisode episode;
 
-  public QueuePoppedEvent(Episode episode) {
+  public QueuePoppedEvent(DBEpisode episode) {
     this.episode = episode;
   }
 
-  public Episode getEpisode() {
+  public DBEpisode getEpisode() {
     return episode;
   }
 }

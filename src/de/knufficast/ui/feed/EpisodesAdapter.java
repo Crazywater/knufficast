@@ -29,7 +29,7 @@ import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
 import de.knufficast.logic.ImageCache;
-import de.knufficast.logic.model.Episode;
+import de.knufficast.logic.model.DBEpisode;
 
 /**
  * Adapter that transforms episodes into a list.
@@ -37,15 +37,15 @@ import de.knufficast.logic.model.Episode;
  * @author crazywater
  * 
  */
-public class EpisodesAdapter extends ArrayAdapter<Episode> {
+public class EpisodesAdapter extends ArrayAdapter<DBEpisode> {
   private final Context context;
   private final int layoutResourceId;
-  private final List<Episode> data;
+  private final List<DBEpisode> data;
   private final Presenter presenter;
   private final ImageCache imageCache;
 
   public EpisodesAdapter(Context context, int layoutResourceId,
-      List<Episode> data, Presenter presenter) {
+      List<DBEpisode> data, Presenter presenter) {
     super(context, layoutResourceId, data);
     this.layoutResourceId = layoutResourceId;
     this.context = context;
@@ -64,7 +64,7 @@ public class EpisodesAdapter extends ArrayAdapter<Episode> {
       row = inflater.inflate(layoutResourceId, parent, false);
     }
 
-    final Episode episode = data.get(position);
+    final DBEpisode episode = data.get(position);
 
     row.setOnClickListener(new OnClickListener() {
       @Override
@@ -86,6 +86,6 @@ public class EpisodesAdapter extends ArrayAdapter<Episode> {
    * @author crazywater
    */
   public interface Presenter {
-    void episodeClicked(Episode episode);
+    void episodeClicked(DBEpisode episode);
   }
 }

@@ -15,7 +15,6 @@
  ******************************************************************************/
 package de.knufficast.events;
 
-import de.knufficast.logic.model.EpisodeIdentifier;
 
 /**
  * An event that signifies that the download progress of an URL has changed.
@@ -23,13 +22,13 @@ import de.knufficast.logic.model.EpisodeIdentifier;
  * @author crazywater
  */
 public class EpisodeDownloadProgressEvent implements Event {
-  private EpisodeIdentifier id;
+  private long id;
 
-  public EpisodeDownloadProgressEvent(EpisodeIdentifier id) {
+  public EpisodeDownloadProgressEvent(long id) {
     this.id = id;
   }
 
-  public EpisodeIdentifier getIdentifier() {
+  public long getIdentifier() {
     return id;
   }
 }

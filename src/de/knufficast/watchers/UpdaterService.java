@@ -33,8 +33,10 @@ import android.util.Log;
 import de.knufficast.App;
 import de.knufficast.logic.Configuration;
 import de.knufficast.logic.FeedDownloader;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBFeed;
+import de.knufficast.logic.model.XMLToDBWriter;
+import de.knufficast.logic.model.XMLFeed;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.NetUtil;
 
@@ -46,7 +48,7 @@ import de.knufficast.util.NetUtil;
  */
 public class UpdaterService extends IntentService {
   private final NetUtil netUtil;
-  private final BooleanCallback<Feed, Feed> callback;
+  private final BooleanCallback<DBFeed, DBFeed> callback;
 
   private static AtomicBoolean refreshing = new AtomicBoolean();
 
@@ -56,7 +58,7 @@ public class UpdaterService extends IntentService {
     callback = null;
   }
 
-  public UpdaterService(BooleanCallback<Feed, Feed> callback) {
+  public UpdaterService(BooleanCallback<DBFeed, DBFeed> callback) {
     super("UpdaterService");
     netUtil = new NetUtil(this);
     this.callback = callback;
@@ -70,10 +72,10 @@ public class UpdaterService extends IntentService {
     HttpURLConnection.setFollowRedirects(true);
     if (!refreshing.getAndSet(true)) {
       Configuration config = App.get().getConfiguration();
-      List<Feed> allFeeds = config.getAllFeeds();
+      List<DBFeed> allFeeds = config.getAllFeeds();
       boolean refreshSuccessful = true;
       // refresh feeds
-      for (Feed feed : allFeeds) {
+      for (DBFeed feed : allFeeds) {
         Log.d("UpdaterService", "Refreshing Feed " + feed.getFeedUrl());
         try {
           refresh(config, feed);
@@ -89,11 +91,11 @@ public class UpdaterService extends IntentService {
       }
       // auto-enqueue all new episodes
       if (App.get().getConfiguration().autoEnqueue()) {
-        for (Feed feed : allFeeds) {
-          for (Episode episode : feed.getEpisodes()) {
+        for (DBFeed feed : allFeeds) {
+          for (DBEpisode episode : feed.getEpisodes()) {
             if (episode.isNew() && episode.hasDownload()) {
               App.get().getQueue().add(episode);
-              episode.setNoLongerNew();
+              episode.setNew(false);
             }
           }
         }
@@ -110,7 +112,7 @@ public class UpdaterService extends IntentService {
     new QueueDownloader(getApplicationContext()).restartDownloads();
   }
 
-  private void refresh(Configuration config, Feed feed) throws IOException,
+  private void refresh(Configuration config, DBFeed feed) throws IOException,
   XmlPullParserException {
     boolean needsUpdate = true;
     HttpURLConnection conn = (HttpURLConnection) new URL(feed.getFeedUrl())
@@ -131,8 +133,8 @@ public class UpdaterService extends IntentService {
       needsUpdate = false;
     }
     if (needsUpdate) {
-      List<Feed> feeds = new FeedDownloader().getFeeds(conn);
-      config.mergeFeeds(feeds);
+      List<XMLFeed> feeds = new FeedDownloader().getFeeds(conn);
+      new XMLToDBWriter().mergeFeeds(feeds);
     }
   }
 

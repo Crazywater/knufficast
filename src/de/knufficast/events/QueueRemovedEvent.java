@@ -15,7 +15,7 @@
  ******************************************************************************/
 package de.knufficast.events;
 
-import de.knufficast.logic.model.Episode;
+import de.knufficast.logic.model.DBEpisode;
 
 /**
  * An event that is fired when an element is removed from the queue.
@@ -23,13 +23,13 @@ import de.knufficast.logic.model.Episode;
  * @author crazywater
  */
 public class QueueRemovedEvent implements Event {
-  private final Episode ep;
+  private final DBEpisode ep;
   
-  public QueueRemovedEvent(Episode ep) {
+  public QueueRemovedEvent(DBEpisode ep) {
     this.ep = ep;
   }
 
-  public Episode getEpisode() {
+  public DBEpisode getEpisode() {
     return ep;
   }
 }

@@ -15,22 +15,16 @@
  ******************************************************************************/
 package de.knufficast.logic;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import de.knufficast.App;
-import de.knufficast.events.NewEpisodeEvent;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Episode.DownloadState;
-import de.knufficast.logic.model.EpisodeIdentifier;
-import de.knufficast.logic.model.Feed;
-import de.knufficast.logic.model.Queue;
-import de.knufficast.watchers.QueueDownloader;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBEpisode.DownloadState;
+import de.knufficast.logic.model.DBFeed;
+import de.knufficast.logic.model.SQLiteHelper;
 import de.knufficast.watchers.UpdaterService;
 
 /**
@@ -38,43 +32,25 @@ import de.knufficast.watchers.UpdaterService;
  * 
  * @author crazywater
  */
-public class Configuration implements Serializable {
-  private static final long serialVersionUID = 1L;
-
-  private Map<String, Feed> feedsByUrl = new HashMap<String, Feed>();
-  private Queue queue = new Queue();
+public class Configuration {
+  private static final String LAST_UPDATE_KEY = "lastUpdated";
   private FlattrConfiguration flattrConfig;
-  private long lastUpdate;
 
   /**
-   * The play queue representation.
+   * Gets a list of all feeds.
    */
-  public Queue getQueue() {
-    return queue;
-  }
-
-  /**
-   * Gets a list of all feeds. Writes to this list are not reflected by the
-   * configuration.
-   */
-  public List<Feed> getAllFeeds() {
-    return new ArrayList<Feed>(feedsByUrl.values());
-  }
-
-  /**
-   * Gets a single feed.
-   * 
-   * @param url
-   *          the URL of this feed, e.g. obtainable by an
-   *          {@link EpisodeIdentifier}
-   */
-  public Feed getFeed(String url) {
-    return feedsByUrl.get(url);
+  public List<DBFeed> getAllFeeds() {
+    List<Long> ids = App.get().getDB().getIds(SQLiteHelper.TABLE_FEEDS);
+    List<DBFeed> result = new ArrayList<DBFeed>();
+    for (Long id : ids) {
+      result.add(new DBFeed(id));
+    }
+    return result;
   }
 
   public FlattrConfiguration getFlattrConfig() {
     if (flattrConfig == null) {
-      flattrConfig = new FlattrConfiguration();
+      flattrConfig = new FlattrConfiguration(getSharedPreferences());
     }
     return flattrConfig;
   }
@@ -84,52 +60,27 @@ public class Configuration implements Serializable {
    * milliseconds UNIX time.
    */
   public long getLastUpdate() {
-    return lastUpdate;
+    return getSharedPreferences().getLong(LAST_UPDATE_KEY, 0);
   }
 
   /**
    * Set the last feed refresh date.
    */
   public void setLastUpdate(long lastUpdate) {
-    this.lastUpdate = lastUpdate;
+    getSharedPreferences().edit().putLong(LAST_UPDATE_KEY, lastUpdate);
   }
 
   /**
    * Add new feeds to the configuration.
    */
-  public void addFeeds(Iterable<? extends Feed> moreFeeds) {
+  public void addFeeds(Iterable<? extends DBFeed> moreFeeds) {
     if (!moreFeeds.iterator().hasNext()) {
       return;
     }
-    for (Feed feed : moreFeeds) {
+    for (DBFeed feed : moreFeeds) {
       // set episodes in new feeds as old per default
-      for (Episode ep : feed.getEpisodes()) {
-        ep.setNoLongerNew();
-      }
-      feedsByUrl.put(feed.getFeedUrl(), feed);
-    }
-  }
-
-  /**
-   * Merge feeds with the existing feeds: If two feeds have the same URL, the
-   * new feeds determine the metadata. Episodes are taken from the old feed,
-   * except if they didn't exist then yet. May fire a {@link NewEpisodeEvent} as
-   * a side effect.
-   */
-  public void mergeFeeds(Iterable<? extends Feed> newFeeds) {
-    if (!newFeeds.iterator().hasNext()) {
-      return;
-    }
-    for (Feed newFeed : newFeeds) {
-      Feed oldFeed = getFeed(newFeed.getFeedUrl());
-      Feed resultFeed = newFeed;
-      boolean newEpisode = false;
-      if (oldFeed != null) {
-        newFeed.mergeEpisodes(oldFeed);
-      }
-      feedsByUrl.put(resultFeed.getFeedUrl(), resultFeed);
-      if (newEpisode) {
-        App.get().getEventBus().fireEvent(new NewEpisodeEvent());
+      for (DBEpisode ep : feed.getEpisodes()) {
+        ep.setNew(false);
       }
     }
   }
@@ -140,41 +91,13 @@ public class Configuration implements Serializable {
    * be called after restarting the application.
    */
   public void sanitize() {
-    for (Feed feed : getAllFeeds()) {
-      for (Episode ep : feed.getEpisodes()) {
+    for (DBFeed feed : getAllFeeds()) {
+      for (DBEpisode ep : feed.getEpisodes()) {
         if (ep.getDownloadState() == DownloadState.DOWNLOADING) {
           ep.setDownloadState(DownloadState.ERROR);
         }
       }
     }
-  }
-
-  /**
-   * Deletes an entire feed, including episodes, downloads, queue entries.
-   */
-  public void deleteFeed(String feedUrl) {
-    // TODO: delete cached icons
-    QueueDownloader queueDownloader = new QueueDownloader(App.get());
-    Feed feed = feedsByUrl.get(feedUrl);
-    for (Episode ep : feed.getEpisodes()) {
-      if (queue.contains(ep)) {
-        queue.remove(ep);
-      }
-      queueDownloader.deleteDownload(ep);
-    }
-    feedsByUrl.remove(feedUrl);
-  }
-
-  /**
-   * Returns the episode for an {@link EpisodeIdentifier} or null, if no such
-   * feed/episode.
-   */
-  public Episode getEpisode(EpisodeIdentifier identifier) {
-    Feed feed = getFeed(identifier.getFeedId());
-    if (feed == null) {
-      return null;
-    }
-    return feed.getEpisode(identifier.getEpisodeId());
   }
 
   /**

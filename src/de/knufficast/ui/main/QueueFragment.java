@@ -36,7 +36,7 @@ import de.knufficast.events.Listener;
 import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.events.PlayerStateChangeEvent;
 import de.knufficast.events.QueueChangedEvent;
-import de.knufficast.logic.model.Episode;
+import de.knufficast.logic.model.DBEpisode;
 import de.knufficast.logic.model.Queue;
 import de.knufficast.ui.DnDListView;
 import de.knufficast.util.TimeUtil;
@@ -49,7 +49,7 @@ import de.knufficast.util.TimeUtil;
  */
 public class QueueFragment extends BaseFragment implements
     QueueAdapter.Presenter {
-  private List<Episode> ourQueue = new ArrayList<Episode>();
+  private List<DBEpisode> ourQueue = new ArrayList<DBEpisode>();
   private QueueAdapter episodesAdapter;
   private Presenter presenter;
   private EventBus eventBus;
@@ -98,8 +98,8 @@ public class QueueFragment extends BaseFragment implements
     @Override
     public void onEvent(EpisodeDownloadProgressEvent event) {
       if (updatingDownloads) {
-        for (Episode ep : ourQueue) {
-          if (ep.getIdentifier().equals(event.getIdentifier())) {
+        for (DBEpisode ep : ourQueue) {
+          if (ep.getId() == event.getIdentifier()) {
             redrawQueue();
             break;
           }
@@ -274,7 +274,7 @@ public class QueueFragment extends BaseFragment implements
   }
 
   @Override
-  public void episodeClicked(Episode episode) {
+  public void episodeClicked(DBEpisode episode) {
     presenter.episodeClicked(episode);
   }
 
@@ -285,11 +285,11 @@ public class QueueFragment extends BaseFragment implements
    * 
    */
   public interface Presenter {
-    void episodeClicked(Episode episode);
+    void episodeClicked(DBEpisode episode);
     void playClicked();
     void seekTo(int progress);
-    void moveEpisode(Episode episode, int to);
-    void removeEpisode(Episode episode);
+    void moveEpisode(DBEpisode episode, int to);
+    void removeEpisode(DBEpisode episode);
   }
 
   /*

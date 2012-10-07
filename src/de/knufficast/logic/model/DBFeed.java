@@ -15,63 +15,57 @@
  ******************************************************************************/
 package de.knufficast.logic.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
+import de.knufficast.App;
 
 /**
- * Representation of a Feed. Contains {@link Episode}s.
+ * Representation of a Feed. Contains {@link DBEpisode}s.
  * 
  * @author crazywater
  * 
  */
-public class Feed implements Serializable {
-  private static final long serialVersionUID = 1L;
+public class DBFeed {
+  private static final String TABLE = SQLiteHelper.TABLE_FEEDS;
+  private static final String EP_TABLE = SQLiteHelper.TABLE_EPISODES;
+  private final long id;
+  private final Database db;
 
-  private String description;
-  private String encoding;
-  private List<Episode> episodes;
-  private String eTag;
-  private String feedUrl;
-  private String imgUrl;
-  private long lastUpdated;
-  private String title;
+  public DBFeed(long id) {
+    this.id = id;
+    db = App.get().getDB();
+  }
 
-  public void addEpisode(Episode episode) {
-    episodes.add(episode);
+  public long getId() {
+    return id;
   }
 
   /**
    * Returns a human-readable description of this feed.
    */
   public String getDescription() {
-    return description;
+    return db.get(TABLE, id, SQLiteHelper.C_FD_DESCRIPTION);
   }
 
   /**
    * Returns the encoding of this feed (e.g. "UTF-8").
    */
   public String getEncoding() {
-    return encoding;
-  }
-
-  public Episode getEpisode(String guid) {
-    for (Episode episode : getEpisodes()) {
-      if (episode.getGuid().equals(guid)) {
-        return episode;
-      }
-    }
-    return null;
+    return db.get(TABLE, id, SQLiteHelper.C_FD_ENCODING);
   }
 
   /**
-   * Returns the list of episodes of this feed. Changes in this list are not
-   * reflected in the feed itself.
+   * Returns the list of episodes of this feed.
    */
-  public List<Episode> getEpisodes() {
-    return new ArrayList<Episode>(episodes);
+  public List<DBEpisode> getEpisodes() {
+    List<DBEpisode> result = new ArrayList<DBEpisode>();
+    List<Long> children = db.query(EP_TABLE, SQLiteHelper.C_EP_FEED_ID,
+        String.valueOf(id));
+    for (Long id : children) {
+      result.add(new DBEpisode(id));
+    }
+    return result;
   }
 
   /**
@@ -80,7 +74,7 @@ public class Feed implements Serializable {
    * (re-downloaded).
    */
   public String getETag() {
-    return eTag;
+    return db.get(TABLE, id, SQLiteHelper.C_FD_ETAG);
   }
 
   /**
@@ -88,14 +82,14 @@ public class Feed implements Serializable {
    * well.
    */
   public String getFeedUrl() {
-    return feedUrl;
+    return db.get(TABLE, id, SQLiteHelper.C_FD_FEED_URL);
   }
 
   /**
    * Returns the URL of the icon of this feed.
    */
   public String getImgUrl() {
-    return imgUrl;
+    return db.get(TABLE, id, SQLiteHelper.C_FD_IMG_URL);
   }
 
   /**
@@ -104,74 +98,43 @@ public class Feed implements Serializable {
    * header. Used to check if we need to refresh the feed.
    */
   public long getLastUpdated() {
-    return lastUpdated;
+    String dbStr = db.get(TABLE, id, SQLiteHelper.C_FD_LAST_UPDATED);
+    return Long.valueOf(dbStr).longValue();
   }
 
   /**
    * Returns the human-readable title of this feed.
    */
   public String getTitle() {
-    return title;
+    return db.get(TABLE, id, SQLiteHelper.C_FD_TITLE);
   }
-
-    public boolean hasEpisode(Episode episode) {
-      return episodes.contains(episode);
-    }
-
-  /**
-  * Merges the episodes of the new and the old feed into this feed builder.
-  * {@link Episode} objects from the old feed are preferred if the episode
-  * appears in both the old and the new feed. New episodes not present in the
-  * old feed are added at the start, not at the end.
-  * 
-  * @return whether there were any episodes in the new feed that weren't in the
-  *         old feed
-  */
- public boolean mergeEpisodes(Feed oldFeed) {
-  boolean hasNewEpisodes = false;
-  Set<Episode> newEpisodes = new HashSet<Episode>(getEpisodes());
-  episodes.clear();
-  for (Episode episode : newEpisodes) {
-    if (!oldFeed.hasEpisode(episode)) {
-      addEpisode(episode);
-      hasNewEpisodes = true;
-    }
-  }
-  for (Episode episode : oldFeed.getEpisodes()) {
-    addEpisode(episode);
-  }
-  return hasNewEpisodes;
- }
 
   public void setDescription(String description) {
-    this.description = description;
+    db.put(TABLE, id, SQLiteHelper.C_FD_DESCRIPTION, description);
   }
 
   public void setEncoding(String encoding) {
-    this.encoding = encoding;
-  }
-
-  public void setEpisodes(List<Episode> episodes) {
-    this.episodes = episodes;
+    db.put(TABLE, id, SQLiteHelper.C_FD_ENCODING, encoding);
   }
 
   public void setETag(String eTag) {
-    this.eTag = eTag;
+    db.put(TABLE, id, SQLiteHelper.C_FD_ETAG, eTag);
   }
 
   public void setFeedUrl(String feedUrl) {
-    this.feedUrl = feedUrl;
+    db.put(TABLE, id, SQLiteHelper.C_FD_FEED_URL, feedUrl);
   }
 
   public void setImgUrl(String imgUrl) {
-    this.imgUrl = imgUrl;
+    db.put(TABLE, id, SQLiteHelper.C_FD_IMG_URL, imgUrl);
   }
 
   public void setLastUpdated(long lastUpdated) {
-    this.lastUpdated = lastUpdated;
+    db.put(TABLE, id, SQLiteHelper.C_FD_LAST_UPDATED,
+        String.valueOf(lastUpdated));
   }
 
   public void setTitle(String title) {
-    this.title = title;
+    db.put(TABLE, id, SQLiteHelper.C_FD_TITLE, title);
   }
 }

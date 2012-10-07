@@ -24,7 +24,8 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.XMLToDBWriter;
+import de.knufficast.logic.model.XMLFeed;
 
 /**
  * A background task that downloads RSS feeds, parses them and adds them to the
@@ -34,12 +35,10 @@ import de.knufficast.logic.model.Feed;
  */
 public class AddFeedTask extends AsyncTask<String, Void, Void> {
   private Presenter presenter;
-  private Configuration configuration;
   private String error;
 
-  public AddFeedTask(Presenter presenter, Configuration configuration) {
+  public AddFeedTask(Presenter presenter) {
     this.presenter = presenter;
-    this.configuration = configuration;
   }
 
   @Override
@@ -58,10 +57,10 @@ public class AddFeedTask extends AsyncTask<String, Void, Void> {
         if (!url.startsWith("http://") || url.startsWith("https://")) {
           url = "http://" + url;
         }
-        List<Feed> feeds = new FeedDownloader()
+        List<XMLFeed> feeds = new FeedDownloader()
             .getFeeds((HttpURLConnection) new URL(urls[i])
             .openConnection());
-        configuration.addFeeds(feeds);
+        new XMLToDBWriter().addFeeds(feeds);
       } catch (IOException e) {
         error = e.getMessage();
       } catch (XmlPullParserException e) {

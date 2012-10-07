@@ -15,26 +15,35 @@
  ******************************************************************************/
 package de.knufficast.logic;
 
-import java.io.Serializable;
-
+import android.content.SharedPreferences;
 import de.knufficast.App;
 import de.knufficast.events.FlattrStatusEvent;
 
-public class FlattrConfiguration implements Serializable {
-  private static final long serialVersionUID = 1L;
-  private FlattrStatus status;
-  private String authCode;
-  private String accessToken;
+public class FlattrConfiguration {
+  private SharedPreferences prefs;
+  private static final String FLATTR_STATUS_KEY = "flattrStatus";
+  private static final String FLATTR_AUTH_CODE = "flattrAuthCode";
+  private static final String FLATTR_ACCESS_TOKEN = "flattrAccessToken";
+
+  public FlattrConfiguration(SharedPreferences prefs) {
+    this.prefs = prefs;
+  }
 
   public enum FlattrStatus {
     NOT_AUTHENTICATED, AUTHENTICATING, AUTHENTICATED, ERROR, NO_MEANS
   }
 
   public void setFlattrStatus(FlattrStatus status) {
-    if (this.status != status) {
-      this.status = status;
+    if (status != getStatus()) {
+      prefs.edit().putString(FLATTR_STATUS_KEY, status.name());
+      App.get().getEventBus().fireEvent(new FlattrStatusEvent(status));
     }
-    App.get().getEventBus().fireEvent(new FlattrStatusEvent(status));
+  }
+
+  public FlattrStatus getStatus() {
+    String str = prefs.getString(FLATTR_STATUS_KEY,
+        FlattrStatus.NOT_AUTHENTICATED.name());
+    return FlattrStatus.valueOf(str);
   }
 
   public void resetAuthentication() {
@@ -43,27 +52,23 @@ public class FlattrConfiguration implements Serializable {
     setFlattrStatus(FlattrStatus.NOT_AUTHENTICATED);
   }
 
-  public FlattrStatus getStatus() {
-    return status;
-  }
-
   public void setAuthCode(String authCode) {
-    this.authCode = authCode;
+    prefs.edit().putString(FLATTR_AUTH_CODE, authCode);
   }
 
   public void setAccessToken(String accessToken) {
-    this.accessToken = accessToken;
+    prefs.edit().putString(FLATTR_ACCESS_TOKEN, accessToken);
   }
 
   public String getAuthCode() {
-    return authCode;
+    return prefs.getString(FLATTR_AUTH_CODE, null);
   }
 
   public String getAccessToken() {
-    return accessToken;
+    return prefs.getString(FLATTR_ACCESS_TOKEN, null);
   }
 
   public boolean hasAccessToken() {
-    return accessToken != null;
+    return getAccessToken() != null;
   }
 }

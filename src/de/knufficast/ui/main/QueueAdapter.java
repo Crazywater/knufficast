@@ -33,11 +33,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
-import de.knufficast.logic.Configuration;
 import de.knufficast.logic.ImageCache;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Episode.DownloadState;
-import de.knufficast.logic.model.Feed;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBEpisode.DownloadState;
+import de.knufficast.logic.model.DBFeed;
 import de.knufficast.ui.DnDListView;
 
 /**
@@ -46,19 +45,18 @@ import de.knufficast.ui.DnDListView;
  * @author crazywater
  * 
  */
-public class QueueAdapter extends ArrayAdapter<Episode> {
+public class QueueAdapter extends ArrayAdapter<DBEpisode> {
   private final Context context;
   private final int layoutResourceId;
-  private final List<Episode> data;
+  private final List<DBEpisode> data;
   private final Presenter presenter;
   private final ImageCache imageCache;
-  private final Configuration configuration;
 
   private final int normalTextColor;
   private final int secondaryTextColor;
 
   public QueueAdapter(Context context, int layoutResourceId,
-      List<Episode> data, Presenter presenter) {
+      List<DBEpisode> data, Presenter presenter) {
     super(context, layoutResourceId, data);
     this.layoutResourceId = layoutResourceId;
     this.context = context;
@@ -66,7 +64,6 @@ public class QueueAdapter extends ArrayAdapter<Episode> {
     this.presenter = presenter;
 
     imageCache = App.get().getImageCache();
-    configuration = App.get().getConfiguration();
 
     normalTextColor = resolveAttr(android.R.attr.textColorPrimary);
     secondaryTextColor = resolveAttr(android.R.attr.textColorTertiary);
@@ -84,7 +81,7 @@ public class QueueAdapter extends ArrayAdapter<Episode> {
     // needed for drag and drop
     row.setLongClickable(true);
 
-    final Episode episode = data.get(position);
+    final DBEpisode episode = data.get(position);
 
     row.setOnTouchListener(new OnTouchListener() {
       @Override
@@ -106,7 +103,7 @@ public class QueueAdapter extends ArrayAdapter<Episode> {
         : secondaryTextColor;
     episodeTitle.setTextColor(textColor);
 
-    Feed feed = configuration.getFeed(episode.getFeedUrl());
+    DBFeed feed = episode.getFeed();
     TextView feedTitle = (TextView) row
         .findViewById(R.id.queue_episode_list_feed_title);
     feedTitle.setText(feed.getTitle());
@@ -147,7 +144,7 @@ public class QueueAdapter extends ArrayAdapter<Episode> {
    * 
    */
   public interface Presenter {
-    void episodeClicked(Episode episode);
+    void episodeClicked(DBEpisode episode);
     boolean onTouch(int position, View view, MotionEvent event);
   }
 }

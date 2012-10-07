@@ -22,8 +22,8 @@ import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
 import de.knufficast.events.QueueChangedEvent;
 import de.knufficast.logic.Configuration;
-import de.knufficast.logic.model.Episode;
-import de.knufficast.logic.model.Episode.DownloadState;
+import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.model.DBEpisode.DownloadState;
 import de.knufficast.util.NetUtil;
 
 /**
@@ -50,7 +50,7 @@ public class DownloadWatcher {
     public void onEvent(EpisodeDownloadStateEvent event) {
       Configuration config = App.get().getConfiguration();
       if (config.autoRetry()) {
-        Episode ep = config.getEpisode(event.getIdentifier());
+        DBEpisode ep = new DBEpisode(event.getIdentifier());
         if (ep.getDownloadState() == DownloadState.ERROR && netUtil.isOnline()) {
           queueDownloader.restartDownloads();
         }
