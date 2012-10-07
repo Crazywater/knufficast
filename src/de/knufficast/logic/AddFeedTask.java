@@ -24,8 +24,8 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import de.knufficast.logic.model.XMLToDBWriter;
 import de.knufficast.logic.model.XMLFeed;
+import de.knufficast.logic.model.XMLToDBWriter;
 
 /**
  * A background task that downloads RSS feeds, parses them and adds them to the
@@ -54,11 +54,11 @@ public class AddFeedTask extends AsyncTask<String, Void, Void> {
       try {
         String url = urls[i];
         // add http in the front - otherwise we get invalid protocol
-        if (!url.startsWith("http://") || url.startsWith("https://")) {
+        if (!(url.startsWith("http://") || url.startsWith("https://"))) {
           url = "http://" + url;
         }
         List<XMLFeed> feeds = new FeedDownloader()
-            .getFeeds((HttpURLConnection) new URL(urls[i])
+            .getFeeds((HttpURLConnection) new URL(url)
             .openConnection());
         new XMLToDBWriter().addFeeds(feeds);
       } catch (IOException e) {

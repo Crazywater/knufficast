@@ -164,7 +164,8 @@ public class Database {
     ContentValues cvs = new ContentValues();
     Iterator<String> it = values.iterator();
     for (String col : columns) {
-      cvs.put(col, it.next());
+      String val = it.next();
+      cvs.put(col, val == null ? "" : val);
     }
     long id = database.insert(table, null, cvs);
     return id;
