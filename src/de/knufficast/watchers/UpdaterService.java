@@ -35,8 +35,8 @@ import de.knufficast.logic.Configuration;
 import de.knufficast.logic.FeedDownloader;
 import de.knufficast.logic.model.DBEpisode;
 import de.knufficast.logic.model.DBFeed;
-import de.knufficast.logic.model.XMLToDBWriter;
 import de.knufficast.logic.model.XMLFeed;
+import de.knufficast.logic.model.XMLToDBWriter;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.NetUtil;
 
@@ -83,6 +83,7 @@ public class UpdaterService extends IntentService {
             callback.success(feed);
           }
         } catch (Exception e) {
+          e.printStackTrace();
           refreshSuccessful = false;
           if (callback != null) {
             callback.fail(feed);

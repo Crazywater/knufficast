@@ -1,6 +1,8 @@
 package de.knufficast.logic.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import de.knufficast.App;
@@ -11,7 +13,10 @@ public class XMLToDBWriter {
   public void addFeeds(List<XMLFeed> xmlFeeds) {
     for (XMLFeed xmlFeed : xmlFeeds) {
       DBFeed feed = createFeed(xmlFeed);
-      for (XMLEpisode tempEpisode : xmlFeed.getEpisodes()) {
+      // reverse the episodes, so we insert the oldest first
+      List<XMLEpisode> episodes = xmlFeed.getEpisodes();
+      Collections.reverse(episodes);
+      for (XMLEpisode tempEpisode : episodes) {
         DBEpisode ep = createEpisode(feed, tempEpisode);
         ep.setNew(false);
       }
@@ -27,6 +32,7 @@ public class XMLToDBWriter {
       } else {
         feed = new DBFeed(feedIds.get(0));
       }
+      List<XMLEpisode> newEpisodes = new ArrayList<XMLEpisode>();
       for (XMLEpisode tempEpisode : tempFeed.getEpisodes()) {
         // get all episode ids with this guid
         List<Long> ids = db.query(SQLiteHelper.TABLE_EPISODES,
@@ -42,9 +48,14 @@ public class XMLToDBWriter {
           }
         }
         if (!found) {
-          DBEpisode ep = createEpisode(feed, tempEpisode);
-          ep.setNew(true);
+          newEpisodes.add(tempEpisode);
         }
+      }
+      // reverse so we have the newest episodes first
+      Collections.reverse(newEpisodes);
+      for (XMLEpisode tempEpisode : newEpisodes) {
+        DBEpisode ep = createEpisode(feed, tempEpisode);
+        ep.setNew(true);
       }
     }
   }
