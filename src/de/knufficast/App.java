@@ -179,7 +179,7 @@ public class App extends Application {
   private void saveQueue() {
     SharedPreferences prefs = PreferenceManager
         .getDefaultSharedPreferences(this);
-    prefs.edit().putString(KEY_QUEUE_PREF, queue.toString());
+    prefs.edit().putString(KEY_QUEUE_PREF, queue.toString()).commit();
   }
 
   private void loadQueue() {

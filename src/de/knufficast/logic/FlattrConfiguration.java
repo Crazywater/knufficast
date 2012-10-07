@@ -35,7 +35,7 @@ public class FlattrConfiguration {
 
   public void setFlattrStatus(FlattrStatus status) {
     if (status != getStatus()) {
-      prefs.edit().putString(FLATTR_STATUS_KEY, status.name());
+      prefs.edit().putString(FLATTR_STATUS_KEY, status.name()).commit();
       App.get().getEventBus().fireEvent(new FlattrStatusEvent(status));
     }
   }
@@ -53,11 +53,11 @@ public class FlattrConfiguration {
   }
 
   public void setAuthCode(String authCode) {
-    prefs.edit().putString(FLATTR_AUTH_CODE, authCode);
+    prefs.edit().putString(FLATTR_AUTH_CODE, authCode).commit();
   }
 
   public void setAccessToken(String accessToken) {
-    prefs.edit().putString(FLATTR_ACCESS_TOKEN, accessToken);
+    prefs.edit().putString(FLATTR_ACCESS_TOKEN, accessToken).commit();
   }
 
   public String getAuthCode() {

@@ -67,7 +67,7 @@ public class Configuration {
    * Set the last feed refresh date.
    */
   public void setLastUpdate(long lastUpdate) {
-    getSharedPreferences().edit().putLong(LAST_UPDATE_KEY, lastUpdate);
+    getSharedPreferences().edit().putLong(LAST_UPDATE_KEY, lastUpdate).commit();
   }
 
   /**
