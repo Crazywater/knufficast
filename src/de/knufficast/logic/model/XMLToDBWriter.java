@@ -22,9 +22,20 @@ import java.util.List;
 
 import de.knufficast.App;
 
+/**
+ * A writer that gets feeds and adds them to the database or merges them with
+ * the existing feeds in the database. (i.e. here happens the conversion from
+ * XMLFeed/XMLEpisode to DBFeed/DBEpisode)
+ * 
+ * @author crazywater
+ * 
+ */
 public class XMLToDBWriter {
   private final Database db = App.get().getDB();
 
+  /**
+   * Newly adds feeds to the database.
+   */
   public void addFeeds(List<XMLFeed> xmlFeeds) {
     for (XMLFeed xmlFeed : xmlFeeds) {
       DBFeed feed = createFeed(xmlFeed);
@@ -38,6 +49,9 @@ public class XMLToDBWriter {
     }
   }
 
+  /**
+   * Merges feeds with existing feeds in the database.
+   */
   public void mergeFeeds(List<XMLFeed> tempFeeds) {
     for (XMLFeed tempFeed : tempFeeds) {
       List<Long> feedIds = db.query(SQLiteHelper.TABLE_FEEDS, SQLiteHelper.C_FD_FEED_URL, tempFeed.getDataUrl());

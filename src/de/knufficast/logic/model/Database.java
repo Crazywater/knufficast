@@ -28,8 +28,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
+/**
+ * A connection to the Android-internal SQLite3 database. Caches writes so that
+ * multiple writes only write the last result. Also caches reads, so multiple
+ * reads don't go to the database.
+ * 
+ * @author crazywater
+ * 
+ */
 public class Database {
   private final SQLiteHelper dbHelper;
   private final DBUpdater dbUpdater;
@@ -77,6 +84,9 @@ public class Database {
     dbHelper.close();
   }
 
+  /**
+   * Gets all row ids from the table.
+   */
   public List<Long> getIds(String table) {
     String[] id = { SQLiteHelper.C_ID };
     Cursor cursor = database.query(table, id, null, null, null, null,
@@ -84,6 +94,9 @@ public class Database {
     return getAllIds(cursor);
   }
 
+  /**
+   * Querys the database for rows which have column=value.
+   */
   public List<Long> query(String table, String column, String value) {
     String[] id = { SQLiteHelper.C_ID };
     String[] values = { value };
@@ -92,6 +105,9 @@ public class Database {
     return getAllIds(cursor);
   }
 
+  /**
+   * Gets a value from the database. Might be cached.
+   */
   public String get(String table, long id, String column) {
     String[] col = { column };
     ColId key = new ColId(table, column, id);
@@ -107,6 +123,9 @@ public class Database {
     return result;
   }
 
+  /**
+   * Returns a long value. Is only used for referencing rows of other tables.
+   */
   public long getLong(String table, long id, String column) {
     String[] col = { column };
     Cursor cursor = database.query(table, col, SQLiteHelper.C_ID + " = " + id,
@@ -117,12 +136,29 @@ public class Database {
     return result;
   }
 
+  /**
+   * Set a value in the table.
+   * 
+   * @param table
+   *          the table
+   * @param id
+   *          the row ID
+   * @param column
+   *          the column name
+   * @param value
+   *          the value
+   */
   public void put(String table, long id, String column, String value) {
     ColId colId = new ColId(table, column, id);
     cache.put(colId, value);
     dbUpdater.postUpdate(colId, value);
   }
 
+  /**
+   * Creates a new row in the table.
+   * 
+   * @return the ID of the row
+   */
   public long create(String table, Collection<String> columns,
       Iterable<String> values) {
     ContentValues cvs = new ContentValues();
@@ -146,6 +182,11 @@ public class Database {
     return results;
   }
 
+  /**
+   * A simple updater thread that does writes to the database in the background.
+   * "Batches up" writes to the same location, so that only the last write is
+   * executed. Writes are generally executed only after a time of WAIT_TIME.
+   */
   private class DBUpdater extends Thread {
     private Map<ColId, String> toUpdate = new ConcurrentHashMap<ColId, String>();
     private static final long WAIT_TIME = 10 * 1000; // 10s
@@ -170,7 +211,6 @@ public class Database {
           }
         }
         lastWrite = System.currentTimeMillis();
-        Log.d("Database", "Running update, " + toUpdate.size() + " updates");
         while (!toUpdate.isEmpty()) {
           Iterator<Entry<ColId, String>> it = toUpdate.entrySet().iterator();
           while (it.hasNext()) {
@@ -186,6 +226,9 @@ public class Database {
       }
     }
 
+    /**
+     * Request a database update from this thread.
+     */
     void postUpdate(ColId id, String value) {
       toUpdate.put(id, value);
       synchronized (this) {

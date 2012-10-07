@@ -171,6 +171,9 @@ public class Queue {
     return queue.isEmpty();
   }
 
+  /**
+   * Transforms the queue into a comma-separated string of Episode IDs.
+   */
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -181,6 +184,9 @@ public class Queue {
     return sb.toString();
   }
 
+  /**
+   * Reads the queue from a comma-separated string of Episode IDs.
+   */
   public void fromString(String string) {
     queue.clear();
     String[] ids = string.split(",");

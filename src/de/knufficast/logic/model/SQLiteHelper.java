@@ -19,6 +19,12 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+/**
+ * A class that keeps information about the SQLite table structure.
+ * 
+ * @author crazywater
+ * 
+ */
 public class SQLiteHelper extends SQLiteOpenHelper {
   public static final String TABLE_EPISODES = "episodes";
   public static final String TABLE_FEEDS = "feeds";

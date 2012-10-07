@@ -15,6 +15,15 @@
  ******************************************************************************/
 package de.knufficast.logic.model;
 
+import de.knufficast.logic.XmlParser;
+
+/**
+ * In-memory representation of an episode that has been fetched by the
+ * {@link XmlParser} but not yet written to the database.
+ * 
+ * @author crazywater
+ * 
+ */
 public class XMLEpisode {
   private String title = "";
   private String description = "";
