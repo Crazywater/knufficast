@@ -34,6 +34,7 @@ import de.knufficast.events.Listener;
 import de.knufficast.events.NewImageEvent;
 import de.knufficast.logic.AddFeedTask;
 import de.knufficast.logic.model.DBFeed;
+import de.knufficast.ui.BaseFragment;
 
 /**
  * Fragment in the main window that displays the "feeds" tab.

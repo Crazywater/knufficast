@@ -38,6 +38,7 @@ import de.knufficast.events.PlayerStateChangeEvent;
 import de.knufficast.events.QueueChangedEvent;
 import de.knufficast.logic.model.DBEpisode;
 import de.knufficast.logic.model.Queue;
+import de.knufficast.ui.BaseFragment;
 import de.knufficast.ui.DnDListView;
 import de.knufficast.util.TimeUtil;
 

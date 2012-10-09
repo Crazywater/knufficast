@@ -71,5 +71,8 @@
     <string name="hour_6">every 6 hours</string>
     <string name="day_1">every day</string>
     <string name="week_1">every week</string>
+    <string name="episode_progress_downloaded">downloaded</string>
+    <string name="episode_progress_listened">listened</string>
+    <string name="episode_progress_flattred">flattred</string>
     <string name="internal_flattr_authurl">https://flattr.com/oauth/authorize?response_type=code&amp;client_id=0XW1mQCZ4t6sFMOwe3NWHIDTBwQGGi6x&amp;redirect_uri=knufficastoauth://&amp;scope=flattr</string>
 </resources>

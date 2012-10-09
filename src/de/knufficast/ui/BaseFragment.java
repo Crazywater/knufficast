@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package de.knufficast.ui.main;
+package de.knufficast.ui;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -21,6 +21,8 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import de.knufficast.ui.main.FeedsFragment;
+import de.knufficast.ui.main.QueueFragment;
 
 /**
  * Base fragment class for the two fragments in the main view (
@@ -46,5 +48,9 @@ public abstract class BaseFragment extends Fragment {
 
   protected Context getContext() {
     return getActivity();
+  }
+
+  protected void runOnUiThread(Runnable r) {
+    getActivity().runOnUiThread(r);
   }
 }

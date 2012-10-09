@@ -15,220 +15,53 @@
  ******************************************************************************/
 package de.knufficast.ui.episode;
 
-import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
-import de.knufficast.events.EpisodeDownloadProgressEvent;
-import de.knufficast.events.EpisodeDownloadStateEvent;
-import de.knufficast.events.EventBus;
-import de.knufficast.events.FlattrStateEvent;
-import de.knufficast.events.Listener;
-import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.flattr.FlattrApi;
 import de.knufficast.logic.model.DBEpisode;
 import de.knufficast.logic.model.DBEpisode.DownloadState;
 import de.knufficast.logic.model.DBEpisode.FlattrState;
-import de.knufficast.logic.model.DBEpisode.PlayState;
 import de.knufficast.logic.model.DBFeed;
-import de.knufficast.logic.model.Queue;
+import de.knufficast.logic.model.Database;
+import de.knufficast.logic.model.SQLiteHelper;
 import de.knufficast.ui.main.MainActivity;
 import de.knufficast.ui.settings.SettingsActivity;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.NetUtil;
-import de.knufficast.util.TimeUtil;
 import de.knufficast.watchers.QueueDownloader;
 
 /**
- * An activity to show detailed information about an episode.
+ * An activity that displays details about episodes, either in a feed or the
+ * queue. The user can flick through the different episodes.
  * 
  * @author crazywater
  */
-public class EpisodeDetailActivity extends Activity {
+public class EpisodeDetailActivity extends FragmentActivity {
+  // The episode that should be the current one upon invoking this activity.
   public static final String EPISODE_ID_INTENT = "episodeIdIntent";
+  // Request paging through the queue instead of paging through the feed.
+  public static final String REQUEST_QUEUE_PAGING_INTENT = "queuePagingIntent";
 
-  private DBEpisode episode;
-  private DBFeed feed;
+  private Database db;
+  private DBEpisode currentEpisode;
+  private ViewPager viewPager;
+  private EpisodesPagerAdapter sectionsPagerAdapter;
 
-  private Queue queue;
-  private EventBus eventBus;
-
-  private final TimeUtil timeUtil = new TimeUtil();
-
-  private WebView description;
-  private TextView title;
-  private TextView episodeState;
-  private ImageView icon;
-
-  private ProgressBar downloadProgress;
-  private ProgressBar listeningProgress;
-  private ProgressBar flattringProgress;
-  private TextView downloadProgressText;
-  private TextView listeningProgressText;
-  private TextView flattringProgressText;
-
-  private Listener<EpisodeDownloadProgressEvent> downloadProgressListener = new Listener<EpisodeDownloadProgressEvent>() {
-    @Override
-    public void onEvent(EpisodeDownloadProgressEvent event) {
-      if (event.getIdentifier() == episode.getId()) {
-        updateDownloadState();
-      }
-    }
-  };
-  private Listener<EpisodeDownloadStateEvent> downloadStateListener = new Listener<EpisodeDownloadStateEvent>() {
-    @Override
-    public void onEvent(EpisodeDownloadStateEvent event) {
-      if (event.getIdentifier() == episode.getId()) {
-        runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            updateDownloadState();
-          }
-        });
-      }
-    }
-  };
-  private Listener<PlayerProgressEvent> playerProgressListener = new Listener<PlayerProgressEvent>() {
-    @Override
-    public void onEvent(final PlayerProgressEvent event) {
-      if (episode.equals(event.getEpisode())) {
-        runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            if (episode.equals(event.getEpisode())) {
-              updatePlayingState(event.getProgress(), event.getTotal());
-            }
-          }
-        });
-      }
-    }
-  };
-  private Listener<FlattrStateEvent> flattrStateListener = new Listener<FlattrStateEvent>() {
-    @Override
-    public void onEvent(final FlattrStateEvent event) {
-      runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          updateFlattringState();
-        }
-      });
-    }
-  };
-
-
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    getActionBar().setDisplayHomeAsUpEnabled(true);
-    setContentView(R.layout.activity_episode_detail);
-
-    queue = App.get().getQueue();
-    eventBus = App.get().getEventBus();
-
-    Button enqueueButton = (Button) findViewById(R.id.episode_enqueue_button);
-    enqueueButton.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        if (queue.contains(episode)) {
-          queue.remove(episode);
-        } else {
-          queue.add(episode);
-        }
-        updateButton();
-      }
-    });
-
-    title = (TextView) findViewById(R.id.episode_title_text);
-    description = (WebView) findViewById(R.id.episode_description_text);
-    icon = (ImageView) findViewById(R.id.episode_icon);
-    episodeState = (TextView) findViewById(R.id.episode_state);
-    downloadProgress = (ProgressBar) findViewById(R.id.episode_download_progress);
-    listeningProgress = (ProgressBar) findViewById(R.id.episode_listening_progress);
-    flattringProgress = (ProgressBar) findViewById(R.id.episode_flattring_progress);
-    downloadProgressText = (TextView) findViewById(R.id.episode_download_progress_text);
-    listeningProgressText = (TextView) findViewById(R.id.episode_listening_progress_text);
-    flattringProgressText = (TextView) findViewById(R.id.episode_flattring_progress_text);
-
-    // make the background transparent
-    description.setBackgroundColor(0);
-  }
-
-  @Override
-  public void onStart() {
-    super.onStart();
-    Long episodeId = getIntent().getExtras().getLong(EPISODE_ID_INTENT);
-    episode = new DBEpisode(episodeId);
-    feed = episode.getFeed();
-    setEpisode(episode);
-    eventBus
-        .addListener(EpisodeDownloadStateEvent.class, downloadStateListener);
-    eventBus.addListener(EpisodeDownloadProgressEvent.class,
-        downloadProgressListener);
-    eventBus.addListener(PlayerProgressEvent.class, playerProgressListener);
-    eventBus.addListener(FlattrStateEvent.class, flattrStateListener);
-
-    downloadProgress.setMax(100);
-    listeningProgress.setMax(100);
-    flattringProgress.setMax(100);
-
-    if (episode.hasFlattr()) {
-      NetUtil netUtil = new NetUtil(this);
-      if (netUtil.isOnline()) {
-        // check if the flattr state has changed
-        FlattrApi flattrApi = new FlattrApi();
-        Log.d("EpisodeDetailActivity", "Finding flattr state");
-        flattrApi.isFlattred(episode.getFlattrUrl(),
-            new BooleanCallback<Boolean, String>() {
-              @Override
-              public void success(Boolean flattred) {
-                // successfully got new flattring state
-                Log.d("EpisodeDetailActivity", "Episode got new flattr state "
-                    + flattred);
-                if (episode.getFlattrState() != FlattrState.ENQUEUED
-                    || flattred) {
-                  episode.setFlattrState(flattred ? FlattrState.FLATTRED
-                      : FlattrState.NONE);
-                  runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                      updateFlattringState();
-                    }
-                  });
-                }
-              }
-              @Override
-              public void fail(String error) {
-                // do nothing, might just not have a good connection...
-              }
-            });
-      }
-    }
-  }
-
-  @Override
-  public void onStop() {
-    super.onStop();
-    eventBus.removeListener(EpisodeDownloadStateEvent.class,
-        downloadStateListener);
-    eventBus.removeListener(EpisodeDownloadProgressEvent.class,
-        downloadProgressListener);
-    eventBus.removeListener(PlayerProgressEvent.class, playerProgressListener);
-    eventBus.removeListener(FlattrStateEvent.class, flattrStateListener);
-  }
+  private final List<DBEpisode> episodes = new ArrayList<DBEpisode>();
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -238,12 +71,88 @@ public class EpisodeDetailActivity extends Activity {
   }
 
   @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_episode_detail);
+    getActionBar().setDisplayHomeAsUpEnabled(true);
+
+    db = App.get().getDB();
+
+    Long episodeId = getIntent().getExtras().getLong(EPISODE_ID_INTENT);
+    boolean queuePaging = getIntent().getExtras().getBoolean(
+        REQUEST_QUEUE_PAGING_INTENT);
+    episodes.clear();
+    currentEpisode = new DBEpisode(episodeId);
+    if (queuePaging) {
+      // if we have queue paging, set the episodes according to the queue
+      episodes.addAll(App.get().getQueue().asList());
+    } else {
+      // we have feed paging, page through the feed
+      List<Long> ids = db.query(SQLiteHelper.TABLE_EPISODES,
+          SQLiteHelper.C_EP_FEED_ID,
+          String.valueOf(currentEpisode.getFeed().getId()));
+      for (long id : ids) {
+        episodes.add(new DBEpisode(id));
+      }
+    }
+  }
+
+  @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
-    DownloadState state = episode.getDownloadState();
+    DownloadState state = currentEpisode.getDownloadState();
     boolean downloaded = state == DownloadState.FINISHED
         || state == DownloadState.PAUSED || state == DownloadState.ERROR;
     menu.setGroupEnabled(R.id.menugroup_downloaded, downloaded);
     return true;
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+    viewPager = (ViewPager) findViewById(R.id.episode_detail_pager);
+    sectionsPagerAdapter = new EpisodesPagerAdapter(
+        getSupportFragmentManager(), currentEpisode.getFeed());
+
+    viewPager.setAdapter(sectionsPagerAdapter);
+    viewPager.setCurrentItem(episodes.indexOf(currentEpisode));
+    viewPager
+        .setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+          @Override
+          public void onPageSelected(int position) {
+            currentEpisode = episodes.get(position);
+            requestFlattrUpdate();
+          }
+        });
+  }
+
+  private void requestFlattrUpdate() {
+    if (currentEpisode.hasFlattr()) {
+      NetUtil netUtil = new NetUtil(this);
+      if (netUtil.isOnline()) {
+        // check if the flattr state has changed
+        FlattrApi flattrApi = new FlattrApi();
+        Log.d("EpisodeDetailActivity", "Finding flattr state");
+        flattrApi.isFlattred(currentEpisode.getFlattrUrl(),
+            new BooleanCallback<Boolean, String>() {
+              @Override
+              public void success(Boolean flattred) {
+                // successfully got new flattring state
+                Log.d("EpisodeDetailActivity", "Episode got new flattr state "
+                    + flattred);
+                if (currentEpisode.getFlattrState() != FlattrState.ENQUEUED
+                    || flattred) {
+                  currentEpisode.setFlattrState(flattred ? FlattrState.FLATTRED
+                      : FlattrState.NONE);
+                }
+              }
+
+              @Override
+              public void fail(String error) {
+                // do nothing, might just not have a good connection...
+              }
+            });
+      }
+    }
   }
 
   @Override
@@ -259,137 +168,40 @@ public class EpisodeDetailActivity extends Activity {
       finish();
       return true;
     case R.id.menu_flattr:
-      episode.setFlattrState(FlattrState.ENQUEUED);
-      App.get().getFlattrQueue().enqueue(episode);
-      updateFlattringState();
+      currentEpisode.setFlattrState(FlattrState.ENQUEUED);
+      App.get().getFlattrQueue().enqueue(currentEpisode);
       return true;
     case R.id.menu_settings:
       Intent intent = new Intent(this, SettingsActivity.class);
       startActivity(intent);
       return true;
     case R.id.menu_delete_download:
-      new QueueDownloader(getApplicationContext()).deleteDownload(episode);
-      updateDownloadState();
+      new QueueDownloader(getApplicationContext()).deleteDownload(currentEpisode);
       return true;
     }
     return super.onOptionsItemSelected(item);
   }
 
-  private void setEpisode(DBEpisode episode) {
-    title.setText(episode.getTitle());
-    String contentType = feed.getEncoding() == null ? "text/html"
-        : "text/html; charset=" + feed.getEncoding();
-    description.loadData(episode.getDescription(), contentType,
-        feed.getEncoding());
-    String imgUrl = episode.getImgUrl() != null ? episode.getImgUrl() : feed
-        .getImgUrl();
-    icon.setImageDrawable(App.get().getImageCache().getResource(imgUrl));
-    updateDownloadState();
-    updatePlayingState(episode.getSeekLocation(), episode.getDuration());
-    updateFlattringState();
-    updateButton();
-  }
+  public class EpisodesPagerAdapter extends FragmentPagerAdapter {
+    public EpisodesPagerAdapter(FragmentManager fm, DBFeed feed) {
+      super(fm);
+    }
 
-  private String toMegaBytes(long bytes) {
-    double result = (double) bytes / (1000 * 1000);
-    DecimalFormat df = new DecimalFormat("#.##");
-    return df.format(result);
-  }
+    @Override
+    public Fragment getItem(int i) {
+      EpisodeDetailFragment fragment = new EpisodeDetailFragment();
+      fragment.setEpisode(episodes.get(i));
+      return fragment;
+    }
 
-  private void updatePlayingState(int played, int duration) {
-    String text = "";
-    int progress = 0;
-    PlayState state = episode.getPlayState();
-    if (state == PlayState.NONE) {
-      text = getString(R.string.playing_state_none);
-      progress = 0;
-    } else if (state == PlayState.STARTED_PLAYING) {
-      text = getString(R.string.playing_state_playing,
-          timeUtil.formatTime(played), timeUtil.formatTime(duration));
-      progress = (int) ((double) 100 * played / duration);
-      Log.d("EpisodeDetailActivity", "Progress is " + progress);
-    } else if (state == PlayState.FINISHED) {
-      progress = 100;
+    @Override
+    public int getCount() {
+      return episodes.size();
     }
-    if (episode.getDownloadState() == DownloadState.FINISHED && state != PlayState.FINISHED) {
-      episodeState.setText(text);
-    }
-    setProgress(listeningProgress, listeningProgressText, progress);
-  }
 
-  private void updateFlattringState() {
-    if (episode.hasFlattr()) {
-      int progress = 0;
-      String text = "";
-      if (episode.getFlattrState() == FlattrState.NONE) {
-        text = getString(R.string.flattring_state_none);
-        progress = 0;
-      } else if (episode.getFlattrState() == FlattrState.ENQUEUED) {
-        text = getString(R.string.flattring_state_enqueued);
-        progress = 50;
-      } else if (episode.getFlattrState() == FlattrState.FLATTRED) {
-        text = getString(R.string.flattring_state_error);
-        progress = 100;
-      } else if (episode.getFlattrState() == FlattrState.FLATTRED) {
-        text = getString(R.string.flattring_state_flattred);
-        progress = 100;
-      }
-      if (episode.getPlayState() == PlayState.FINISHED) {
-        episodeState.setText(text);
-      }
-      setProgress(flattringProgress, flattringProgressText, progress);
-    } else {
-      flattringProgress.setVisibility(View.GONE);
-      flattringProgressText.setVisibility(View.GONE);
-    }
-  }
-
-  private void updateDownloadState() {
-    DownloadState state = episode.getDownloadState();
-    String text = "";
-    String downloadStatus = " (" + toMegaBytes(episode.getDownloadedBytes())
-        + "/" + toMegaBytes(episode.getTotalBytes()) + " MB)";
-    int progress = 0;
-    if (episode.getTotalBytes() > 0) {
-      progress = (int) (((double) 100 * episode
-          .getDownloadedBytes() / episode.getTotalBytes()));
-    }
-    if (!episode.hasDownload()) {
-      text = getString(R.string.download_state_no_download);
-    } else if (state == DownloadState.NONE) {
-      text = getString(R.string.download_state_none);
-    } else if (state == DownloadState.DOWNLOADING) {
-      text = getString(R.string.download_state_downloading) + downloadStatus;
-    } else if (state == DownloadState.ERROR) {
-      text = getString(R.string.download_state_error) + downloadStatus;
-    } else if (state == DownloadState.FINISHED) {
-      progress = 100;
-    } else if (state == DownloadState.PAUSED) {
-      text = getString(R.string.download_state_paused) + downloadStatus;
-    }
-    if (state != DownloadState.FINISHED) {
-      episodeState.setText(text);
-    }
-    setProgress(downloadProgress, downloadProgressText, progress);
-  }
-
-  private void setProgress(ProgressBar progressBar, TextView textView,
-      int progress) {
-    progressBar.setProgress(progress);
-    int color = getResources().getColor(android.R.color.tertiary_text_light);
-    if (progress == 100) {
-      color = getResources().getColor(android.R.color.holo_blue_dark);
-    }
-    textView.setTextColor(color);
-  }
-
-  private void updateButton() {
-    Button enqueueButton = (Button) findViewById(R.id.episode_enqueue_button);
-    enqueueButton.setVisibility(episode.hasDownload() ? View.VISIBLE : View.GONE);
-    if (queue.contains(episode)) {
-      enqueueButton.setText(getString(R.string.dequeue));
-    } else {
-      enqueueButton.setText(getString(R.string.enqueue));
+    @Override
+    public CharSequence getPageTitle(int position) {
+      return episodes.get(position).getTitle();
     }
   }
 }

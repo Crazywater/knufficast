@@ -34,6 +34,7 @@ import de.knufficast.logic.model.DBEpisode;
 import de.knufficast.logic.model.DBFeed;
 import de.knufficast.logic.model.Queue;
 import de.knufficast.player.QueuePlayer;
+import de.knufficast.ui.BaseFragment;
 import de.knufficast.ui.episode.EpisodeDetailActivity;
 import de.knufficast.ui.feed.FeedDetailActivity;
 import de.knufficast.ui.settings.SettingsActivity;
@@ -55,12 +56,12 @@ public class MainActivity extends FragmentActivity implements
    * keep every loaded fragment in memory. If this becomes too memory intensive, it may be best
    * to switch to a {@link android.support.v4.app.FragmentStatePagerAdapter}.
    */
-  private SectionsPagerAdapter mSectionsPagerAdapter;
+  private SectionsPagerAdapter sectionsPagerAdapter;
 
   /**
    * The {@link ViewPager} that will host the section contents.
    */
-  private ViewPager mViewPager;
+  private ViewPager viewPager;
 
   private QueueFragment queueFragment;
   private FeedsFragment feedsFragment;
@@ -77,7 +78,7 @@ public class MainActivity extends FragmentActivity implements
     setContentView(R.layout.activity_main);
     // Create the adapter that will return a fragment for each of the three primary sections
     // of the app.
-    mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+    sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
     // Set up the action bar.
     final ActionBar actionBar = getActionBar();
@@ -85,13 +86,13 @@ public class MainActivity extends FragmentActivity implements
     actionBar.setHomeButtonEnabled(false);
 
     // Set up the ViewPager with the sections adapter.
-    mViewPager = (ViewPager) findViewById(R.id.pager);
-    mViewPager.setAdapter(mSectionsPagerAdapter);
+    viewPager = (ViewPager) findViewById(R.id.pager);
+    viewPager.setAdapter(sectionsPagerAdapter);
 
     // When swiping between different sections, select the corresponding tab.
     // We can also use ActionBar.Tab#select() to do this if we have a reference to the
     // Tab.
-    mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+    viewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
       @Override
       public void onPageSelected(int position) {
         actionBar.setSelectedNavigationItem(position);
@@ -99,13 +100,13 @@ public class MainActivity extends FragmentActivity implements
     });
 
     // For each of the sections in the app, add a tab to the action bar.
-    for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
+    for (int i = 0; i < sectionsPagerAdapter.getCount(); i++) {
       // Create a tab with text corresponding to the page title defined by the adapter.
       // Also specify this Activity object, which implements the TabListener interface, as the
       // listener for when this tab is selected.
       actionBar.addTab(
           actionBar.newTab()
-          .setText(mSectionsPagerAdapter.getPageTitle(i))
+          .setText(sectionsPagerAdapter.getPageTitle(i))
           .setTabListener(this));
     }
   }
@@ -120,7 +121,7 @@ public class MainActivity extends FragmentActivity implements
 
     // auto-move to feeds tab if no feeds added or adding new feed
     if (uri != null || App.get().getConfiguration().getAllFeeds().size() == 0) {
-      mViewPager.setCurrentItem(FEEDS_TAB, true);
+      viewPager.setCurrentItem(FEEDS_TAB, true);
     }
   }
 
@@ -145,7 +146,7 @@ public class MainActivity extends FragmentActivity implements
   @Override
   public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
     // When the given tab is selected, switch to the corresponding page in the ViewPager.
-    mViewPager.setCurrentItem(tab.getPosition());
+    viewPager.setCurrentItem(tab.getPosition());
   }
 
   @Override
@@ -202,6 +203,7 @@ public class MainActivity extends FragmentActivity implements
   @Override
   public void episodeClicked(DBEpisode episode) {
     Intent intent = new Intent(this, EpisodeDetailActivity.class);
+    intent.putExtra(EpisodeDetailActivity.REQUEST_QUEUE_PAGING_INTENT, true);
     intent.putExtra(EpisodeDetailActivity.EPISODE_ID_INTENT, episode.getId());
     startActivity(intent);
   }
