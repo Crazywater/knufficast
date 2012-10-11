@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical" >
 
     <LinearLayout
         android:id="@+id/feed_title_bar"
@@ -12,11 +12,8 @@
 
         <ImageView
             android:id="@+id/feed_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-            android:maxHeight="100dp"
-            android:maxWidth="100dp"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:scaleType="fitCenter"
             android:src="@drawable/logo" />
 
@@ -33,19 +30,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="5dp"
-        android:visibility="gone">
+        android:visibility="gone" >
 
-	    <TextView
-	        android:id="@+id/feed_description_text"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:autoLink="all"
-	        android:linksClickable="true"/>
-	    
+        <TextView
+            android:id="@+id/feed_description_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autoLink="all"
+            android:linksClickable="true" />
     </ScrollView>
+
     <ListView
         android:id="@+id/feed_episode_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content" >
     </ListView>
+
 </LinearLayout>

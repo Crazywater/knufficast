@@ -22,7 +22,8 @@ public class FeedPostProcessor extends XmlParser {
   private XMLEpisode episode;
   private StringBuilder stringBuilder;
   
-  private Set<String> whitelist = SetUtil.hash("p", "a", "li", "ol", "ul");
+  private Set<String> whitelist = SetUtil.hash("p", "a", "li", "ol", "ul",
+      "span", "div", "i", "u", "b");
 
   public void process(List<XMLFeed> feeds) {
     for (XMLFeed feed : feeds) {
