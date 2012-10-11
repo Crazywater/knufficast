@@ -34,12 +34,13 @@ import de.knufficast.util.SetUtil;
  * 
  */
 public class FeedPostProcessor extends XmlParser {
+  private static final Set<String> whitelist = SetUtil.hash("p", "a", "li",
+      "ol", "ul", "span", "div", "i", "u", "b", "strong", "em", "blockquote",
+      "center");
+
   private XMLEpisode episode;
   private StringBuilder stringBuilder;
   
-  private Set<String> whitelist = SetUtil.hash("p", "a", "li", "ol", "ul",
-      "span", "div", "i", "u", "b");
-
   public void process(List<XMLFeed> feeds) {
     for (XMLFeed feed : feeds) {
       for (XMLEpisode episode : feed.getEpisodes()) {
