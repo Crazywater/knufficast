@@ -35,6 +35,7 @@ import de.knufficast.R;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.NewImageEvent;
 import de.knufficast.util.BooleanCallback;
+import de.knufficast.util.NetUtil;
 import de.knufficast.util.file.ExternalFileUtil;
 import de.knufficast.util.file.InternalFileUtil;
 
@@ -80,7 +81,9 @@ public class ImageCache {
 
         @Override
         public void fail(Void unused) {
-          unsuccessfulUrls.add(url);
+          if (new NetUtil(context).isOnline()) {
+            unsuccessfulUrls.add(url);
+          }
         }
       }).execute(url, filename);
     }

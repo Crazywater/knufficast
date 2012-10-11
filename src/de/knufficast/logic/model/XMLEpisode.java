@@ -15,11 +15,11 @@
  ******************************************************************************/
 package de.knufficast.logic.model;
 
-import de.knufficast.logic.XmlParser;
+import de.knufficast.logic.RssParser;
 
 /**
  * In-memory representation of an episode that has been fetched by the
- * {@link XmlParser} but not yet written to the database.
+ * {@link RssParser} but not yet written to the database.
  * 
  * @author crazywater
  * 
@@ -31,6 +31,7 @@ public class XMLEpisode {
   private String dataUrl = "";
   private String imgUrl = "";
   private String flattrUrl = "";
+  private String content = "";
 
   public String getTitle() {
     return title;
@@ -78,5 +79,13 @@ public class XMLEpisode {
 
   public void setFlattrUrl(String flattrUrl) {
     this.flattrUrl = flattrUrl;
+  }
+
+  public void setContent(String content) {
+    this.content = content;
+  }
+
+  public String getContent() {
+    return content;
   }
 }

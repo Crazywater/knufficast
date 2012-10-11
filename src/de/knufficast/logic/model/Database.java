@@ -105,6 +105,10 @@ public class Database {
     return getAllIds(cursor);
   }
 
+  public void delete(String table, long id) {
+    database.delete(table, SQLiteHelper.C_ID + " = " + id, null);
+  }
+
   /**
    * Gets a value from the database. Might be cached.
    */

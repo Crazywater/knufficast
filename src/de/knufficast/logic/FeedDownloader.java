@@ -24,7 +24,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import de.knufficast.logic.model.XMLFeed;
 
 /**
- * A thin layer around {@link XmlParser} that extracts further information about
+ * A thin layer around {@link RssParser} that extracts further information about
  * the feed and feeds them in.
  * 
  * @author crazywater
@@ -37,8 +37,8 @@ public class FeedDownloader {
 
     long timestamp = connection.getDate();
     String eTag = connection.getHeaderField("ETag");
-    XmlParser parser = new XmlParser();
-    parser.parseFrom(connection.getInputStream(), connection.getURL()
+    RssParser parser = new RssParser();
+    parser.parse(connection.getInputStream(), connection.getURL()
         .toString(), timestamp, eTag);
     return parser.getFeeds();
   }

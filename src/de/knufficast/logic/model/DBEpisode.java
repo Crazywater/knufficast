@@ -133,6 +133,10 @@ public class DBEpisode {
     return db.get(TABLE, id, SQLiteHelper.C_EP_GUID);
   }
 
+  public String getContent() {
+    return db.get(TABLE, id, SQLiteHelper.C_EP_CONTENT);
+  }
+
   /**
    * URL of the episode icon. Empty string if none.
    */

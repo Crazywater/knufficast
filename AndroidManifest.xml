@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="de.knufficast"
-    android:versionCode="1"
+    android:versionCode="2"
     android:versionName="0.1" >
 
     <uses-sdk

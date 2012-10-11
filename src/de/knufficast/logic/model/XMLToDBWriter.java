@@ -32,11 +32,13 @@ import de.knufficast.App;
  */
 public class XMLToDBWriter {
   private final Database db = App.get().getDB();
+  private final FeedPostProcessor postProcessor = new FeedPostProcessor();
 
   /**
    * Newly adds feeds to the database.
    */
   public void addFeeds(List<XMLFeed> xmlFeeds) {
+    postProcessor.process(xmlFeeds);
     for (XMLFeed xmlFeed : xmlFeeds) {
       DBFeed feed = createFeed(xmlFeed);
       // reverse the episodes, so we insert the oldest first
@@ -53,6 +55,7 @@ public class XMLToDBWriter {
    * Merges feeds with existing feeds in the database.
    */
   public void mergeFeeds(List<XMLFeed> tempFeeds) {
+    postProcessor.process(tempFeeds);
     for (XMLFeed tempFeed : tempFeeds) {
       List<Long> feedIds = db.query(SQLiteHelper.TABLE_FEEDS, SQLiteHelper.C_FD_FEED_URL, tempFeed.getDataUrl());
       DBFeed feed;
@@ -93,11 +96,12 @@ public class XMLToDBWriter {
     String[] values = { tempEpisode.getDataUrl(), tempEpisode.getDescription(),
         tempEpisode.getFlattrUrl(), tempEpisode.getGuid(),
         tempEpisode.getImgUrl(), tempEpisode.getTitle(),
-        String.valueOf(feed.getId()) };
+        String.valueOf(feed.getId()), tempEpisode.getContent() };
     String[] columns = { SQLiteHelper.C_EP_DATA_URL,
         SQLiteHelper.C_EP_DESCRIPTION, SQLiteHelper.C_EP_FLATTR_URL,
         SQLiteHelper.C_EP_GUID, SQLiteHelper.C_EP_IMG_URL,
-        SQLiteHelper.C_EP_TITLE, SQLiteHelper.C_EP_FEED_ID };
+        SQLiteHelper.C_EP_TITLE, SQLiteHelper.C_EP_FEED_ID,
+        SQLiteHelper.C_EP_CONTENT };
     long episodeId = db.create(SQLiteHelper.TABLE_EPISODES,
         Arrays.asList(columns), Arrays.asList(values));
     return new DBEpisode(episodeId);

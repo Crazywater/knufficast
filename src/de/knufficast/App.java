@@ -27,6 +27,7 @@ import de.knufficast.logic.model.DBEpisode;
 import de.knufficast.logic.model.DBFeed;
 import de.knufficast.logic.model.Database;
 import de.knufficast.logic.model.Queue;
+import de.knufficast.logic.model.SQLiteHelper;
 import de.knufficast.player.QueuePlayer;
 import de.knufficast.util.LockManager;
 import de.knufficast.watchers.ConfigurationSaver;
@@ -173,7 +174,7 @@ public class App extends Application {
       }
       queueDownloader.deleteDownload(ep);
     }
-    // TODO: delete feed
+    getDB().delete(SQLiteHelper.TABLE_FEEDS, feed.getId());
   }
 
   private void saveQueue() {

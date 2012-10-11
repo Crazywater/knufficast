@@ -17,6 +17,7 @@ package de.knufficast.ui.episode;
 
 import java.text.DecimalFormat;
 
+import android.R.color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -154,8 +155,7 @@ public class EpisodeDetailFragment extends BaseFragment {
     eventBus.addListener(PlayerProgressEvent.class, playerProgressListener);
     eventBus.addListener(FlattrStateEvent.class, flattrStateListener);
 
-    // make the background transparent
-    description.setBackgroundColor(0);
+    description.setBackgroundColor(color.background_light);
     updateState();
   }
 
@@ -193,8 +193,11 @@ public class EpisodeDetailFragment extends BaseFragment {
     title.setText(episode.getTitle());
     String contentType = feed.getEncoding() == null ? "text/html"
         : "text/html; charset=" + feed.getEncoding();
-    description.loadData(episode.getDescription(), contentType,
-        feed.getEncoding());
+    String content = episode.getContent();
+    if ("".equals(description)) {
+      content = episode.getDescription();
+    }
+    description.loadData(content, contentType, feed.getEncoding());
     String imgUrl = episode.getImgUrl() != null ? episode.getImgUrl() : feed
         .getImgUrl();
     icon.setImageDrawable(App.get().getImageCache().getResource(imgUrl));
