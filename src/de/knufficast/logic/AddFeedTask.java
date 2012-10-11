@@ -57,9 +57,9 @@ public class AddFeedTask extends AsyncTask<String, Void, Void> {
         if (!(url.startsWith("http://") || url.startsWith("https://"))) {
           url = "http://" + url;
         }
-        List<XMLFeed> feeds = new FeedDownloader()
-            .getFeeds((HttpURLConnection) new URL(url)
-            .openConnection());
+        HttpURLConnection con = (HttpURLConnection) new URL(url)
+            .openConnection();
+        List<XMLFeed> feeds = new FeedDownloader().getFeeds(con);
         new XMLToDBWriter().addFeeds(feeds);
       } catch (IOException e) {
         error = e.getMessage();
@@ -73,8 +73,9 @@ public class AddFeedTask extends AsyncTask<String, Void, Void> {
   @Override
   protected void onPostExecute(Void unused) {
     if (error == null) {
-      presenter.onFeedAdded();
+        presenter.onFeedAdded();
     } else {
+      if (presenter != null)
       presenter.onFeedAddError(error);
     }
   }

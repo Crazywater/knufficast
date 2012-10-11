@@ -21,6 +21,8 @@ import java.util.List;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -48,6 +50,10 @@ public class FeedsFragment extends BaseFragment implements
   private Presenter presenter;
   private EventBus eventBus;
   private FeedsAdapter feedsAdapter;
+  private AddFeedTask addFeedTask;
+  private TextView addText;
+  private Button addButton;
+  private ListView feedsList;
 
   private List<DBFeed> feeds = new ArrayList<DBFeed>();
 
@@ -84,8 +90,8 @@ public class FeedsFragment extends BaseFragment implements
     super.onStart();
     refreshFeeds();
 
-    Button addButton = findView(R.id.add_feed_button);
-    final TextView addText = findView(R.id.add_feed_text);
+    addButton = findView(R.id.add_feed_button);
+    addText = findView(R.id.add_feed_text);
     if (feedText != null) {
       addText.setText(feedText);
     }
@@ -93,13 +99,13 @@ public class FeedsFragment extends BaseFragment implements
       @Override
       public void onClick(View unused) {
         String input = addText.getText().toString();
-        new AddFeedTask(FeedsFragment.this).execute(input);
+        addFeedTask = new AddFeedTask(FeedsFragment.this);
+        addFeedTask.execute(input);
       }
     });
 
-    ListView feedsList = findView(R.id.feeds_list_view);
+    feedsList = findView(R.id.feeds_list_view);
     feedsList.setAdapter(feedsAdapter);
-
 
     eventBus.addListener(NewImageEvent.class, newImageListener);
   }
@@ -107,6 +113,9 @@ public class FeedsFragment extends BaseFragment implements
   @Override
   public void onStop() {
     super.onStop();
+    if (progressDialog != null) {
+      progressDialog.cancel();
+    }
     eventBus.removeListener(NewImageEvent.class, newImageListener);
   }
 
@@ -135,6 +144,7 @@ public class FeedsFragment extends BaseFragment implements
   public void onFeedAdded() {
     progressDialog.dismiss();
     progressDialog = null;
+
     refreshFeeds();
   }
 
@@ -153,6 +163,13 @@ public class FeedsFragment extends BaseFragment implements
     String title = getString(R.string.add_feed_progress_title);
     String message = getString(R.string.add_feed_progress_message);
     progressDialog = ProgressDialog.show(getContext(), title, message);
+    progressDialog.setCancelable(true);
+    progressDialog.setOnCancelListener(new OnCancelListener() {
+      @Override
+      public void onCancel(DialogInterface dialog) {
+        addFeedTask.cancel(true);
+      }
+    });
   }
 
   public void prepareForFeedText(CharSequence text) {
