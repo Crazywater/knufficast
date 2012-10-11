@@ -25,7 +25,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -131,17 +130,14 @@ public class EpisodeDetailActivity extends FragmentActivity {
       if (netUtil.isOnline()) {
         // check if the flattr state has changed
         FlattrApi flattrApi = new FlattrApi();
-        Log.d("EpisodeDetailActivity", "Finding flattr state");
-        flattrApi.isFlattred(currentEpisode.getFlattrUrl(),
+        final DBEpisode episode = currentEpisode;
+        flattrApi.isFlattred(episode.getFlattrUrl(),
             new BooleanCallback<Boolean, String>() {
               @Override
               public void success(Boolean flattred) {
-                // successfully got new flattring state
-                Log.d("EpisodeDetailActivity", "Episode got new flattr state "
-                    + flattred);
-                if (currentEpisode.getFlattrState() != FlattrState.ENQUEUED
+                if (episode.getFlattrState() != FlattrState.ENQUEUED
                     || flattred) {
-                  currentEpisode.setFlattrState(flattred ? FlattrState.FLATTRED
+                  episode.setFlattrState(flattred ? FlattrState.FLATTRED
                       : FlattrState.NONE);
                 }
               }
