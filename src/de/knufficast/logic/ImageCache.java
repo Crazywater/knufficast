@@ -22,9 +22,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -49,15 +47,16 @@ public class ImageCache {
 
   private final Map<String, String> urlToFile = new HashMap<String, String>();
   private final Map<String, BitmapDrawable> imageMap = new HashMap<String, BitmapDrawable>();
-  private final Set<String> unsuccessfulUrls = new HashSet<String>();
 
   private final Context context;
   private final EventBus eventBus;
+  private final NetUtil netUtil;
   private BitmapDrawable defaultIcon;
 
   public ImageCache(Context context, EventBus eventBus) {
     this.context = context;
     this.eventBus = eventBus;
+    this.netUtil = new NetUtil(context);
   }
 
   /**
@@ -71,7 +70,7 @@ public class ImageCache {
     if (imageMap.containsKey(url)) {
       return imageMap.get(url);
     }
-    if (!unsuccessfulUrls.contains(url)) {
+    if (netUtil.isOnWifi()) {
       final String filename = "imageCache-file-" + url.hashCode();
       new DownloadTask(context, null, new BooleanCallback<Void, Void>() {
         @Override
@@ -81,9 +80,6 @@ public class ImageCache {
 
         @Override
         public void fail(Void unused) {
-          if (new NetUtil(context).isOnline()) {
-            unsuccessfulUrls.add(url);
-          }
         }
       }).execute(url, filename);
     }
@@ -124,7 +120,6 @@ public class ImageCache {
       fos = new InternalFileUtil(context).write(IMAGECACHE_FILENAME, false);
       ObjectOutputStream os = new ObjectOutputStream(fos);
       os.writeObject(urlToFile);
-      os.writeObject(unsuccessfulUrls);
       os.close();
     } catch (IOException e) {
       e.printStackTrace();
@@ -138,12 +133,10 @@ public class ImageCache {
           .read(IMAGECACHE_FILENAME);
       ObjectInputStream is = new ObjectInputStream(fis);
       setImages((Map<String, String>) is.readObject());
-      setUnsuccessfulUrls((Set<String>) is.readObject());
       is.close();
     } catch (IOException e) {
       // on failure: assume no cache
       setImages(new HashMap<String, String>());
-      setUnsuccessfulUrls(new HashSet<String>());
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
     }
@@ -155,11 +148,6 @@ public class ImageCache {
     for (Map.Entry<String, String> entry : newImages.entrySet()) {
       notifyNewImage(entry.getKey(), entry.getValue());
     }
-  }
-
-  private void setUnsuccessfulUrls(Set<String> newUrls) {
-    unsuccessfulUrls.clear();
-    unsuccessfulUrls.addAll(newUrls);
   }
 
   public BitmapDrawable getDefaultIcon() {
