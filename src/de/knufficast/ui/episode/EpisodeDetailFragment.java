@@ -19,7 +19,6 @@ import java.text.DecimalFormat;
 
 import android.R.color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.webkit.WebView;
@@ -194,7 +193,7 @@ public class EpisodeDetailFragment extends BaseFragment {
     String contentType = feed.getEncoding() == null ? "text/html"
         : "text/html; charset=" + feed.getEncoding();
     String content = episode.getContent();
-    if ("".equals(description)) {
+    if ("".equals(content)) {
       content = episode.getDescription();
     }
     description.loadData(content, contentType, feed.getEncoding());
@@ -224,7 +223,6 @@ public class EpisodeDetailFragment extends BaseFragment {
       text = getString(R.string.playing_state_playing,
           timeUtil.formatTime(played), timeUtil.formatTime(duration));
       progress = (int) ((double) 100 * played / duration);
-      Log.d("EpisodeDetailActivity", "Progress is " + progress);
     } else if (state == PlayState.FINISHED) {
       progress = 100;
     }
