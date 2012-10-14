@@ -15,9 +15,11 @@
  ******************************************************************************/
 package de.knufficast.player;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.os.IBinder;
@@ -130,6 +132,16 @@ public class QueuePlayer {
       }
     }
   };
+  private final BroadcastReceiver audioUnpluggedReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+        pause();
+      }
+    }
+  };
+  private static final IntentFilter audioUnpluggedIntent = new IntentFilter(
+      AudioManager.ACTION_AUDIO_BECOMING_NOISY);
 
   private PollingThread<Integer> progressReporter;
 
@@ -219,6 +231,7 @@ public class QueuePlayer {
           startProgressReporter();
         }
         player.play();
+        context.registerReceiver(audioUnpluggedReceiver, audioUnpluggedIntent);
         remoteController.updateMetadata(queue.peek(), player.getDuration());
         remoteController.updateState(true);
         eventBus.fireEvent(new PlayerStateChangeEvent(true));
@@ -236,6 +249,7 @@ public class QueuePlayer {
     if (progressListener != null) {
       stopProgressReporter();
     }
+    context.unregisterReceiver(audioUnpluggedReceiver);
     player.pause();
     remoteController.updateState(false);
     eventBus.fireEvent(new PlayerStateChangeEvent(false));
