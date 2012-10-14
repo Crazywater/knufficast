@@ -29,21 +29,19 @@ import de.knufficast.events.QueueRemovedEvent;
  * 
  */
 public class DownloadRemover {
-  private final QueueDownloader queueDownloader;
   private final EventBus eventBus;
 
   private final Listener<QueueRemovedEvent> queueRemovedListener = new Listener<QueueRemovedEvent>() {
     @Override
     public void onEvent(QueueRemovedEvent event) {
       if (App.get().getConfiguration().autoDelete()) {
-        queueDownloader.deleteDownload(event.getEpisode());
+        QueueDownloader.get().deleteDownload(event.getEpisode());
       }
     }
   };
 
   public DownloadRemover(Context context, EventBus eventBus) {
     this.eventBus = eventBus;
-    queueDownloader = new QueueDownloader(context);
   }
 
   public void register() {

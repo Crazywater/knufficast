@@ -16,6 +16,8 @@
 package de.knufficast.watchers;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import android.content.Context;
 import android.util.Log;
@@ -41,9 +43,20 @@ public class QueueDownloader {
   private Context context;
   private NetUtil netUtil;
 
-  public QueueDownloader(Context context) {
+  private static QueueDownloader instance;
+
+  private Map<DBEpisode, DownloadTask> downloadTasks = new HashMap<DBEpisode, DownloadTask>();
+
+  private QueueDownloader(Context context) {
     this.context = context;
     this.netUtil = new NetUtil(context);
+  }
+
+  public static QueueDownloader get() {
+    if (instance == null) {
+      instance = new QueueDownloader(App.get());
+    }
+    return instance;
   }
 
   public void restartDownloads() {
@@ -64,21 +77,38 @@ public class QueueDownloader {
             @Override
             public void success(Void unused) {
               episode.setDownloadState(DownloadState.FINISHED);
+              downloadTasks.remove(episode);
             }
 
             @Override
             public void fail(Void unused) {
               episode.setDownloadState(DownloadState.ERROR);
+              downloadTasks.remove(episode);
             }
           };
-          new DownloadTask(context, progressCallback, finishedCallback)
-              .execute(url, episode.getFileLocation());
+          DownloadTask task = new DownloadTask(context, progressCallback, finishedCallback);
+          downloadTasks.put(episode, task);
+          task.execute(url, episode.getFileLocation());
         }
       }
     }
   }
 
+  public void pauseAllDownloads() {
+    for (Map.Entry<DBEpisode, DownloadTask> entry : downloadTasks.entrySet()) {
+      DBEpisode episode = entry.getKey();
+      DownloadTask downloadTask = entry.getValue();
+      episode.setDownloadState(DownloadState.PAUSED);
+      downloadTask.cancel(true);
+    }
+    downloadTasks.clear();
+  }
+
   public void deleteDownload(DBEpisode episode) {
+    if (downloadTasks.containsKey(episode)) {
+      downloadTasks.get(episode).cancel(true);
+      downloadTasks.remove(episode);
+    }
     File file = new ExternalFileUtil(context).resolveFile(episode
         .getFileLocation());
     if (file.exists()) {
@@ -88,7 +118,7 @@ public class QueueDownloader {
             "Could not delete " + episode.getFileLocation());
       }
     }
-    episode.setDownloadProgress(0, 0);
+    episode.setDownloadProgress(0, episode.getTotalBytes());
     episode.setDownloadState(DownloadState.NONE);
   }
 }

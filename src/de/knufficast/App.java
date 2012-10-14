@@ -167,7 +167,7 @@ public class App extends Application {
 
   public void deleteFeed(DBFeed feed) {
     // TODO: delete cached icons
-    QueueDownloader queueDownloader = new QueueDownloader(App.get());
+    QueueDownloader queueDownloader = QueueDownloader.get();
     for (DBEpisode ep : feed.getEpisodes()) {
       if (queue.contains(ep)) {
         queue.remove(ep);

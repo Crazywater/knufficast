@@ -35,16 +35,16 @@ import de.knufficast.util.NetUtil;
 public class DownloadWatcher {
   private final EventBus eventBus;
   private final Context context;
-  private final NetUtil netUtil;
-  private final QueueDownloader queueDownloader;
+  private NetUtil netUtil;
+  private QueueDownloader queueDownloader;
 
   private Listener<QueueChangedEvent> checkDownloadsListener = new Listener<QueueChangedEvent>() {
     @Override
     public void onEvent(QueueChangedEvent event) {
-      new QueueDownloader(context).restartDownloads();
+      queueDownloader.restartDownloads();
     }
   };
-  
+
   private Listener<EpisodeDownloadStateEvent> episodeDownloadErrorListener = new Listener<EpisodeDownloadStateEvent>() {
     @Override
     public void onEvent(EpisodeDownloadStateEvent event) {
@@ -59,21 +59,21 @@ public class DownloadWatcher {
   };
 
   public DownloadWatcher(Context context, EventBus eventBus) {
-    this.context = context;
     this.eventBus = eventBus;
-    netUtil = new NetUtil(context);
-    queueDownloader = new QueueDownloader(context);
+    this.context = context;
   }
 
   public void register() {
+    netUtil = new NetUtil(context);
+    queueDownloader = QueueDownloader.get();
+    eventBus.addListener(EpisodeDownloadStateEvent.class,
+        episodeDownloadErrorListener);
+    eventBus.addListener(QueueChangedEvent.class, checkDownloadsListener);
+
     Configuration config = App.get().getConfiguration();
     if (config.autoRetry() && netUtil.isOnline()) {
       queueDownloader.restartDownloads();
     }
-
-    eventBus.addListener(EpisodeDownloadStateEvent.class,
-        episodeDownloadErrorListener);
-    eventBus.addListener(QueueChangedEvent.class, checkDownloadsListener);
   }
 
   public void unregister() {

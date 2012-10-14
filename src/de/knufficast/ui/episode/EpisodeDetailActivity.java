@@ -172,7 +172,7 @@ public class EpisodeDetailActivity extends FragmentActivity {
       startActivity(intent);
       return true;
     case R.id.menu_delete_download:
-      new QueueDownloader(getApplicationContext()).deleteDownload(currentEpisode);
+      QueueDownloader.get().deleteDownload(currentEpisode);
       return true;
     }
     return super.onOptionsItemSelected(item);

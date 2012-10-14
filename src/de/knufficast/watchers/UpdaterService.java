@@ -75,6 +75,7 @@ public class UpdaterService extends IntentService {
       List<DBFeed> allFeeds = config.getAllFeeds();
       boolean refreshSuccessful = true;
       // refresh feeds
+      QueueDownloader.get().pauseAllDownloads();
       for (DBFeed feed : allFeeds) {
         Log.d("UpdaterService", "Refreshing Feed " + feed.getFeedUrl());
         try {
@@ -110,7 +111,7 @@ public class UpdaterService extends IntentService {
 
   private void retryDownloads() {
     // restart downloads of new items
-    new QueueDownloader(getApplicationContext()).restartDownloads();
+    QueueDownloader.get().restartDownloads();
   }
 
   private void refresh(Configuration config, DBFeed feed) throws IOException,

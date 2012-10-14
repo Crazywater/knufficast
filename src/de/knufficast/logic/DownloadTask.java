@@ -82,47 +82,50 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
         connection.setRequestProperty("Range", "bytes=" + initiallyDownloaded
             + "-");
       }
-      connection.connect();
-      if (connection.getResponseCode() == 416) {
-        file.delete();
-        throw new RuntimeException("Invalid data range, need to redownload");
+      if (!isCancelled()) {
+        connection.connect();
+        if (connection.getResponseCode() == 416) {
+          file.delete();
+          throw new RuntimeException("Invalid data range, need to redownload");
+        }
+        // check responsecode 2xx
+        if (connection.getResponseCode() / 100 != 2) {
+          throw new RuntimeException("Weird response code "
+              + connection.getResponseCode());
+        }
+        if (!"bytes".equals(connection.getHeaderField("Accept-Ranges"))) {
+          append = false;
+        }
+  
+        // open output
+        FileOutputStream output = new FileOutputStream(file, append);
+  
+        // open input
+        InputStream input = new BufferedInputStream(connection.getInputStream());
+  
+        // check content length
+        int contentLength = connection.getContentLength();
+        if (!(contentLength > 0)) {
+          throw new RuntimeException("Weird content length "
+              + connection.getContentLength());
+        }
+  
+        byte data[] = new byte[1024];
+  
+        int count = 0;
+        long downloaded = initiallyDownloaded;
+        while (!isCancelled() && (count = input.read(data)) != -1) {
+          output.write(data, 0, count);
+          downloaded += count;
+          publishProgressRateLimited(downloaded, contentLength
+              + initiallyDownloaded);
+        }
+  
+        output.flush();
+        output.close();
+        input.close();
       }
-      // check responsecode 2xx
-      if (connection.getResponseCode() / 100 != 2) {
-        throw new RuntimeException("Weird response code "
-            + connection.getResponseCode());
-      }
-      if (!"bytes".equals(connection.getHeaderField("Accept-Ranges"))) {
-        append = false;
-      }
 
-      // open output
-      FileOutputStream output = new FileOutputStream(file, append);
-
-      // open input
-      InputStream input = new BufferedInputStream(connection.getInputStream());
-
-      // check content length
-      int contentLength = connection.getContentLength();
-      if (!(contentLength > 0)) {
-        throw new RuntimeException("Weird content length "
-            + connection.getContentLength());
-      }
-
-      byte data[] = new byte[1024];
-
-      int count = 0;
-      long downloaded = initiallyDownloaded;
-      while ((count = input.read(data)) != -1) {
-        output.write(data, 0, count);
-        downloaded += count;
-        publishProgressRateLimited(downloaded, contentLength
-            + initiallyDownloaded);
-      }
-
-      output.flush();
-      output.close();
-      input.close();
       return true;
     } catch (Exception e) {
       e.printStackTrace();
