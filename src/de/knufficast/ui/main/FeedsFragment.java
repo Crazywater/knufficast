@@ -20,9 +20,6 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,6 +27,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
@@ -48,13 +46,13 @@ import de.knufficast.ui.BaseFragment;
  */
 public class FeedsFragment extends BaseFragment implements
     AddFeedTask.Presenter {
-  private ProgressDialog progressDialog;
   private Presenter presenter;
   private EventBus eventBus;
   private FeedsAdapter feedsAdapter;
   private AddFeedTask addFeedTask;
   private TextView addText;
   private Button addButton;
+  private ProgressBar addProgress;
   private ListView feedsList;
 
   private List<DBFeed> feeds = new ArrayList<DBFeed>();
@@ -83,8 +81,14 @@ public class FeedsFragment extends BaseFragment implements
     super.onCreate(savedInstanceState);
     feedsAdapter = new FeedsAdapter(getContext(), R.layout.feed_list_item,
         feeds);
-    
+
     eventBus = App.get().getEventBus();
+  }
+
+  private void updateAddButtonVisibility() {
+    boolean adding = addFeedTask != null;
+    addProgress.setVisibility(adding ? View.VISIBLE : View.GONE);
+    addButton.setVisibility(adding ? View.GONE : View.VISIBLE);
   }
 
   @Override
@@ -93,7 +97,10 @@ public class FeedsFragment extends BaseFragment implements
     refreshFeeds();
 
     addButton = findView(R.id.add_feed_button);
+    addProgress = findView(R.id.add_feed_progress);
     addText = findView(R.id.add_feed_text);
+    feedsList = findView(R.id.feeds_list_view);
+
     if (feedText != null) {
       addText.setText(feedText);
     }
@@ -101,12 +108,13 @@ public class FeedsFragment extends BaseFragment implements
       @Override
       public void onClick(View unused) {
         String input = addText.getText().toString();
-        addFeedTask = new AddFeedTask(FeedsFragment.this);
-        addFeedTask.execute(input);
+        if (!"".equals(input)) {
+          addFeedTask = new AddFeedTask(FeedsFragment.this);
+          addFeedTask.execute(input);
+        }
       }
     });
 
-    feedsList = findView(R.id.feeds_list_view);
     feedsList.setAdapter(feedsAdapter);
     feedsList.setOnItemClickListener(new OnItemClickListener() {
       @Override
@@ -116,14 +124,16 @@ public class FeedsFragment extends BaseFragment implements
       }
     });
 
+    updateAddButtonVisibility();
+
     eventBus.addListener(NewImageEvent.class, newImageListener);
   }
 
   @Override
   public void onStop() {
     super.onStop();
-    if (progressDialog != null) {
-      progressDialog.cancel();
+    if (addFeedTask != null) {
+      addFeedTask.cancel(true);
     }
     eventBus.removeListener(NewImageEvent.class, newImageListener);
   }
@@ -151,34 +161,24 @@ public class FeedsFragment extends BaseFragment implements
 
   @Override
   public void onFeedAdded() {
-    progressDialog.dismiss();
-    progressDialog = null;
-
+    addFeedTask = null;
+    addText.setText("");
+    updateAddButtonVisibility();
     refreshFeeds();
   }
 
   @Override
   public void onFeedAddError(String error) {
-    progressDialog.dismiss();
-    progressDialog = null;
+    addFeedTask = null;
+    updateAddButtonVisibility();
     new AlertDialog.Builder(getContext()).setTitle(R.string.add_feed_failed)
-        .setMessage(error)
-        .show();
+        .setMessage(error).show();
   }
 
   @Override
   public void onStartAddingFeed() {
     feedText = null;
-    String title = getString(R.string.add_feed_progress_title);
-    String message = getString(R.string.add_feed_progress_message);
-    progressDialog = ProgressDialog.show(getContext(), title, message);
-    progressDialog.setCancelable(true);
-    progressDialog.setOnCancelListener(new OnCancelListener() {
-      @Override
-      public void onCancel(DialogInterface dialog) {
-        addFeedTask.cancel(true);
-      }
-    });
+    updateAddButtonVisibility();
   }
 
   /**

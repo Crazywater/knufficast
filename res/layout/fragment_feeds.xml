@@ -34,6 +34,12 @@
             android:theme="@android:style/Widget.Holo.Button.Borderless"
             android:drawableLeft="@android:drawable/ic_input_add"
             android:text="@string/add_feed_button"/>
+
+        <ProgressBar
+            android:id="@+id/add_feed_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
     </LinearLayout>
 
 </LinearLayout>
