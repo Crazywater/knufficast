@@ -77,6 +77,16 @@ public class RemoteController {
   }
 
   /**
+   * Updates the state of the remote control to "stopped".
+   */
+  public void stop() {
+    if (remoteControlClient != null) {
+      remoteControlClient
+          .setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
+    }
+  }
+
+  /**
    * Set the metadata of this episode according to the episode.
    */
   public void updateMetadata(DBEpisode episode, long duration) {

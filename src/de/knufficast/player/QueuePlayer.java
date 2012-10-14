@@ -223,6 +223,8 @@ public class QueuePlayer {
         remoteController.updateState(true);
         eventBus.fireEvent(new PlayerStateChangeEvent(true));
       }
+    } else if (queue.isEmpty()) {
+      remoteController.stop();
     }
   }
 

@@ -24,7 +24,6 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -113,7 +112,6 @@ public class FeedsFragment extends BaseFragment implements
       @Override
       public void onItemClick(AdapterView<?> arg0, View view, int position,
           long id) {
-        Log.d("FeedsFragment", "Item clicked");
         presenter.feedClicked(feeds.get(position));
       }
     });
