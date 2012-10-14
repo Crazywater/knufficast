@@ -15,19 +15,12 @@
  ******************************************************************************/
 package de.knufficast.flattr;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URLEncoder;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,6 +30,7 @@ import de.knufficast.App;
 import de.knufficast.logic.FlattrConfiguration;
 import de.knufficast.logic.FlattrConfiguration.FlattrStatus;
 import de.knufficast.util.BooleanCallback;
+import de.knufficast.util.HttpUtil;
 
 /**
  * A class that communicates with Flattr via REST.
@@ -56,7 +50,7 @@ public class FlattrApi {
   public static final String ERROR_CONNECTION = "Connection Error";
   public static final String ERROR_NOT_FOUND = "Not found";
 
-  private final HttpClient httpClient = new DefaultHttpClient();
+  private final HttpUtil httpUtil = new HttpUtil();
 
   private final FlattrConfiguration config = App.get().getConfiguration()
       .getFlattrConfig();
@@ -225,9 +219,7 @@ public class FlattrApi {
       throws JSONException, IOException {
     HttpGet request = new HttpGet(httpsUrl);
     request.addHeader("Authorization", authorization);
-    HttpResponse response = httpClient.execute(request);
-    String result = readAll(response.getEntity());
-    return new JSONObject(result);
+    return httpUtil.getJson(request);
   }
 
   private JSONObject postAuthorized(String httpsUrl, JSONObject contents,
@@ -240,26 +232,6 @@ public class FlattrApi {
       StringEntity params = new StringEntity(contents.toString());
       request.setEntity(params);
     }
-    HttpResponse response = httpClient.execute(request);
-    String result = readAll(response.getEntity());
-    return new JSONObject(result);
-  }
-
-  private String readAll(HttpEntity entity) throws IOException {
-    if (entity == null) {
-      return "";
-    }
-    InputStream inputStream = entity.getContent();
-    if (inputStream == null) {
-      return "";
-    }
-    BufferedReader reader = new BufferedReader(new InputStreamReader(
-        inputStream));
-    StringBuilder builder = new StringBuilder();
-    String line = "";
-    while ((line = reader.readLine()) != null) {
-      builder.append(line);
-    }
-    return builder.toString();
+    return httpUtil.getJson(request);
   }
 }

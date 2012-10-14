@@ -60,6 +60,7 @@ public class FeedDetailActivity extends Activity {
     getActionBar().setDisplayHomeAsUpEnabled(true);
     setContentView(R.layout.activity_feed_detail);
 
+
     LinearLayout titleBar = (LinearLayout) findViewById(R.id.feed_title_bar);
     titleBar.setOnClickListener(new OnClickListener() {
       @Override

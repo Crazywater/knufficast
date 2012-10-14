@@ -19,22 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
 import de.knufficast.events.NewImageEvent;
-import de.knufficast.logic.AddFeedTask;
 import de.knufficast.logic.model.DBFeed;
 import de.knufficast.ui.BaseFragment;
 
@@ -44,20 +38,13 @@ import de.knufficast.ui.BaseFragment;
  * @author crazywater
  * 
  */
-public class FeedsFragment extends BaseFragment implements
-    AddFeedTask.Presenter {
+public class FeedsFragment extends BaseFragment {
   private Presenter presenter;
   private EventBus eventBus;
   private FeedsAdapter feedsAdapter;
-  private AddFeedTask addFeedTask;
-  private TextView addText;
-  private Button addButton;
-  private ProgressBar addProgress;
   private ListView feedsList;
 
   private List<DBFeed> feeds = new ArrayList<DBFeed>();
-
-  private CharSequence feedText;
 
   private Listener<NewImageEvent> newImageListener = new Listener<NewImageEvent>() {
     @Override
@@ -85,35 +72,13 @@ public class FeedsFragment extends BaseFragment implements
     eventBus = App.get().getEventBus();
   }
 
-  private void updateAddButtonVisibility() {
-    boolean adding = addFeedTask != null;
-    addProgress.setVisibility(adding ? View.VISIBLE : View.GONE);
-    addButton.setVisibility(adding ? View.GONE : View.VISIBLE);
-  }
 
   @Override
   public void onStart() {
     super.onStart();
     refreshFeeds();
 
-    addButton = findView(R.id.add_feed_button);
-    addProgress = findView(R.id.add_feed_progress);
-    addText = findView(R.id.add_feed_text);
     feedsList = findView(R.id.feeds_list_view);
-
-    if (feedText != null) {
-      addText.setText(feedText);
-    }
-    addButton.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View unused) {
-        String input = addText.getText().toString();
-        if (!"".equals(input)) {
-          addFeedTask = new AddFeedTask(FeedsFragment.this);
-          addFeedTask.execute(input);
-        }
-      }
-    });
 
     feedsList.setAdapter(feedsAdapter);
     feedsList.setOnItemClickListener(new OnItemClickListener() {
@@ -124,7 +89,6 @@ public class FeedsFragment extends BaseFragment implements
       }
     });
 
-    updateAddButtonVisibility();
 
     eventBus.addListener(NewImageEvent.class, newImageListener);
   }
@@ -132,9 +96,6 @@ public class FeedsFragment extends BaseFragment implements
   @Override
   public void onStop() {
     super.onStop();
-    if (addFeedTask != null) {
-      addFeedTask.cancel(true);
-    }
     eventBus.removeListener(NewImageEvent.class, newImageListener);
   }
 
@@ -157,37 +118,6 @@ public class FeedsFragment extends BaseFragment implements
     feeds.clear();
     feeds.addAll(App.get().getConfiguration().getAllFeeds());
     feedsAdapter.notifyDataSetChanged();
-  }
-
-  @Override
-  public void onFeedAdded() {
-    addFeedTask = null;
-    addText.setText("");
-    updateAddButtonVisibility();
-    refreshFeeds();
-  }
-
-  @Override
-  public void onFeedAddError(String error) {
-    addFeedTask = null;
-    updateAddButtonVisibility();
-    new AlertDialog.Builder(getContext()).setTitle(R.string.add_feed_failed)
-        .setMessage(error).show();
-  }
-
-  @Override
-  public void onStartAddingFeed() {
-    feedText = null;
-    updateAddButtonVisibility();
-  }
-
-  /**
-   * Enters a predefined text into the "add feed" text box.
-   * 
-   * @param text
-   */
-  public void prepareForFeedText(CharSequence text) {
-    feedText = text;
   }
 
   public interface Presenter {

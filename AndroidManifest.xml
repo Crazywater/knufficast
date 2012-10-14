@@ -25,6 +25,32 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.feed.FeedDetailActivity"
+            android:label="@string/title_activity_feed_detail" >
+        </activity>
+        <activity
+            android:name=".ui.episode.EpisodeDetailActivity"
+            android:label="@string/title_activity_episode_detail" >
+        </activity>
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:label="@string/title_activity_settings" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="knufficastoauth" />
+            </intent-filter>
+
+            <category android:name="android.intent.category.PREFERENCE" />
+        </activity>
+        <activity
+            android:name=".ui.search.SearchFeedActivity"
+            android:label="@string/title_activity_feed_search">
             <intent-filter>
                 <action
                     android:name="android.intent.action.VIEW"
@@ -74,28 +100,6 @@
                 <data android:mimeType="application/atom+xml" />
                 <data android:mimeType="application/xml" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".ui.feed.FeedDetailActivity"
-            android:label="@string/title_activity_feed_detail" >
-        </activity>
-        <activity
-            android:name=".ui.episode.EpisodeDetailActivity"
-            android:label="@string/title_activity_episode_detail" >
-        </activity>
-        <activity
-            android:name=".ui.settings.SettingsActivity"
-            android:label="@string/title_activity_settings" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="knufficastoauth" />
-            </intent-filter>
-
-            <category android:name="android.intent.category.PREFERENCE" />
         </activity>
 
         <service

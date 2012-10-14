@@ -19,7 +19,6 @@ import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -37,6 +36,7 @@ import de.knufficast.player.QueuePlayer;
 import de.knufficast.ui.BaseFragment;
 import de.knufficast.ui.episode.EpisodeDetailActivity;
 import de.knufficast.ui.feed.FeedDetailActivity;
+import de.knufficast.ui.search.SearchFeedActivity;
 import de.knufficast.ui.settings.SettingsActivity;
 
 /**
@@ -115,13 +115,8 @@ public class MainActivity extends FragmentActivity implements
   public void onStart() {
     super.onStart();
 
-    Uri uri = getIntent().getData();
-    if (uri != null) {
-      feedsFragment.prepareForFeedText(uri.toString());
-    }
-
-    // auto-move to feeds tab if no feeds added or adding new feed
-    if (uri != null || App.get().getConfiguration().getAllFeeds().size() == 0) {
+    // auto-move to feeds tab if no feeds added
+    if (App.get().getConfiguration().getAllFeeds().size() == 0) {
       viewPager.setCurrentItem(FEEDS_TAB, true);
     }
   }
@@ -153,9 +148,11 @@ public class MainActivity extends FragmentActivity implements
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
+    case R.id.menu_add_feed:
+      startActivity(new Intent(this, SearchFeedActivity.class));
+      return true;
     case R.id.menu_settings:
-      Intent intent = new Intent(this, SettingsActivity.class);
-      startActivity(intent);
+      startActivity(new Intent(this, SettingsActivity.class));
       return true;
     case R.id.menu_refresh_feeds:
       // hack to pass an unused argument... one null doesn't work :D

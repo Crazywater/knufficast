@@ -11,6 +11,7 @@
     <string name="title_activity_feed_detail">Feed details</string>
     <string name="title_activity_episode_detail">Episode details</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_feed_search">Add feed</string>
     <string name="enqueue">Enqueue</string>
     <string name="dequeue">Dequeue</string>
     <string name="play">Play/Pause</string>
@@ -25,6 +26,7 @@
     <string name="flattring_state_error">Could not flattr. Check the settings.</string>
     <string name="flattring_state_enqueued">In flattr-queue&#8230;</string>
     <string name="flattring_state_flattred">flattred</string>
+    <string name="menu_add_feed">Add feed&#8230;</string>
     <string name="menu_delete_download">Delete download</string>
     <string name="menu_download">Download</string>
     <string name="menu_flattr">flattr this</string>
