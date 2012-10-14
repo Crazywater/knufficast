@@ -114,6 +114,7 @@ public class MainActivity extends FragmentActivity implements
   @Override
   public void onStart() {
     super.onStart();
+
     Uri uri = getIntent().getData();
     if (uri != null) {
       feedsFragment.prepareForFeedText(uri.toString());

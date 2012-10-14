@@ -67,7 +67,10 @@ public class ImageCache {
     if (url == null || "".equals(url)) {
       return getDefaultIcon();
     }
-    if (imageMap.containsKey(url)) {
+    if (urlToFile.containsKey(url)) {
+      if (!imageMap.containsKey(url)) {
+        insertDrawable(url);
+      }
       return imageMap.get(url);
     }
     if (netUtil.isOnWifi()) {
@@ -90,18 +93,19 @@ public class ImageCache {
    * Insert a newly found image into the map and notify listeners.
    */
   private void notifyNewImage(String url, String filename) {
+    urlToFile.put(url, filename);
+    eventBus.fireEvent(new NewImageEvent(url));
+  }
+
+  private void insertDrawable(String url) {
     try {
       Bitmap bitmap = BitmapFactory.decodeStream(new ExternalFileUtil(context)
-          .read(filename));
-      // bitmap = Bitmap.createScaledBitmap(bitmap, 128, 128, true);
+          .read(urlToFile.get(url)));
       BitmapDrawable drawable = new BitmapDrawable(context.getResources(),
           bitmap);
-
       imageMap.put(url, drawable);
-      urlToFile.put(url, filename);
-      eventBus.fireEvent(new NewImageEvent(url));
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      imageMap.put(url, getDefaultIcon());
     }
   }
 
