@@ -32,7 +32,6 @@ import de.knufficast.App;
 import de.knufficast.R;
 import de.knufficast.flattr.FlattrApi;
 import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBEpisode.DownloadState;
 import de.knufficast.logic.model.DBEpisode.FlattrState;
 import de.knufficast.logic.model.DBFeed;
 import de.knufficast.logic.model.Database;
@@ -94,15 +93,6 @@ public class EpisodeDetailActivity extends FragmentActivity {
         episodes.add(new DBEpisode(id));
       }
     }
-  }
-
-  @Override
-  public boolean onPrepareOptionsMenu(Menu menu) {
-    DownloadState state = currentEpisode.getDownloadState();
-    boolean downloaded = state == DownloadState.FINISHED
-        || state == DownloadState.PAUSED || state == DownloadState.ERROR;
-    menu.setGroupEnabled(R.id.menugroup_downloaded, downloaded);
-    return true;
   }
 
   @Override
