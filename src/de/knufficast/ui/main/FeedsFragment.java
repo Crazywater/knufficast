@@ -24,8 +24,11 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -45,7 +48,7 @@ import de.knufficast.ui.BaseFragment;
  * 
  */
 public class FeedsFragment extends BaseFragment implements
-    AddFeedTask.Presenter, FeedsAdapter.Presenter {
+    AddFeedTask.Presenter {
   private ProgressDialog progressDialog;
   private Presenter presenter;
   private EventBus eventBus;
@@ -80,7 +83,7 @@ public class FeedsFragment extends BaseFragment implements
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     feedsAdapter = new FeedsAdapter(getContext(), R.layout.feed_list_item,
-        feeds, this);
+        feeds);
     
     eventBus = App.get().getEventBus();
   }
@@ -106,6 +109,14 @@ public class FeedsFragment extends BaseFragment implements
 
     feedsList = findView(R.id.feeds_list_view);
     feedsList.setAdapter(feedsAdapter);
+    feedsList.setOnItemClickListener(new OnItemClickListener() {
+      @Override
+      public void onItemClick(AdapterView<?> arg0, View view, int position,
+          long id) {
+        Log.d("FeedsFragment", "Item clicked");
+        presenter.feedClicked(feeds.get(position));
+      }
+    });
 
     eventBus.addListener(NewImageEvent.class, newImageListener);
   }
@@ -172,16 +183,16 @@ public class FeedsFragment extends BaseFragment implements
     });
   }
 
+  /**
+   * Enters a predefined text into the "add feed" text box.
+   * 
+   * @param text
+   */
   public void prepareForFeedText(CharSequence text) {
     feedText = text;
   }
 
-  public interface Presenter extends FeedsAdapter.Presenter {
-
-  }
-
-  @Override
-  public void feedClicked(DBFeed feed) {
-    presenter.feedClicked(feed);
+  public interface Presenter {
+    void feedClicked(DBFeed feed);
   }
 }

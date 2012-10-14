@@ -15,6 +15,8 @@
  ******************************************************************************/
 package de.knufficast.ui.feed;
 
+import java.util.List;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -25,6 +27,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -44,8 +48,7 @@ import de.knufficast.ui.settings.SettingsActivity;
  * @author crazywater
  * 
  */
-public class FeedDetailActivity extends Activity implements
-    EpisodesAdapter.Presenter {
+public class FeedDetailActivity extends Activity {
   public static final String FEED_ID_INTENT = "feedIdIntent";
 
   private boolean descriptionVisible = false;
@@ -126,8 +129,16 @@ public class FeedDetailActivity extends Activity implements
     feedIcon.setImageDrawable(App.get().getImageCache()
         .getResource(feed.getImgUrl()));
     ListView episodeList = (ListView) findViewById(R.id.feed_episode_list);
+    final List<DBEpisode> episodes = feed.getEpisodes();
     episodeList.setAdapter(new EpisodesAdapter(this,
-        R.layout.episode_list_item, feed.getEpisodes(), this));
+        R.layout.episode_list_item, episodes));
+    episodeList.setOnItemClickListener(new OnItemClickListener() {
+      @Override
+      public void onItemClick(AdapterView<?> arg0, View arg1, int position,
+          long arg3) {
+        episodeClicked(episodes.get(position));
+      }
+    });
   }
 
   private void toggleDescription() {
@@ -136,8 +147,7 @@ public class FeedDetailActivity extends Activity implements
     description.setVisibility(descriptionVisible ? View.VISIBLE : View.GONE);
   }
 
-  @Override
-  public void episodeClicked(DBEpisode episode) {
+  private void episodeClicked(DBEpisode episode) {
     Intent intent = new Intent(this, EpisodeDetailActivity.class);
     intent.putExtra(EpisodeDetailActivity.EPISODE_ID_INTENT, episode.getId());
     startActivity(intent);

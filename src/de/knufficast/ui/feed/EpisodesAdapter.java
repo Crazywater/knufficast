@@ -21,7 +21,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -41,16 +40,14 @@ public class EpisodesAdapter extends ArrayAdapter<DBEpisode> {
   private final Context context;
   private final int layoutResourceId;
   private final List<DBEpisode> data;
-  private final Presenter presenter;
   private final ImageCache imageCache;
 
   public EpisodesAdapter(Context context, int layoutResourceId,
-      List<DBEpisode> data, Presenter presenter) {
+      List<DBEpisode> data) {
     super(context, layoutResourceId, data);
     this.layoutResourceId = layoutResourceId;
     this.context = context;
     this.data = data;
-    this.presenter = presenter;
 
     imageCache = App.get().getImageCache();
   }
@@ -65,27 +62,12 @@ public class EpisodesAdapter extends ArrayAdapter<DBEpisode> {
     }
 
     final DBEpisode episode = data.get(position);
-
-    row.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        presenter.episodeClicked(episode);
-      }
-    });
+    row.setClickable(false);
 
     TextView textView = (TextView) row.findViewById(R.id.episode_list_title);
     textView.setText(episode.getTitle());
     ImageView imageView = (ImageView) row.findViewById(R.id.episode_list_icon);
     imageView.setImageDrawable(imageCache.getResource(episode.getImgUrl()));
     return row;
-  }
-
-  /**
-   * Presenter interface of this adapter.
-   * 
-   * @author crazywater
-   */
-  public interface Presenter {
-    void episodeClicked(DBEpisode episode);
   }
 }

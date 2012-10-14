@@ -21,7 +21,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -41,16 +40,13 @@ public class FeedsAdapter extends ArrayAdapter<DBFeed> {
   private final Context context;
   private final int layoutResourceId;
   private final List<DBFeed> data;
-  private final Presenter presenter;
   private final ImageCache imageCache;
 
-  public FeedsAdapter(Context context, int layoutResourceId, List<DBFeed> data,
-      Presenter presenter) {
+  public FeedsAdapter(Context context, int layoutResourceId, List<DBFeed> data) {
     super(context, layoutResourceId, data);
     this.layoutResourceId = layoutResourceId;
     this.context = context;
     this.data = data;
-    this.presenter = presenter;
 
     this.imageCache = App.get().getImageCache();
   }
@@ -64,29 +60,14 @@ public class FeedsAdapter extends ArrayAdapter<DBFeed> {
       row = inflater.inflate(layoutResourceId, parent, false);
     }
 
-    final DBFeed feed = data.get(position);
+    row.setClickable(false);
 
-    row.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        presenter.feedClicked(feed);
-      }
-    });
+    final DBFeed feed = data.get(position);
 
     TextView textView = (TextView) row.findViewById(R.id.feed_list_title);
     textView.setText(feed.getTitle());
     ImageView imageView = (ImageView) row.findViewById(R.id.feed_list_icon);
     imageView.setImageDrawable(imageCache.getResource(feed.getImgUrl()));
     return row;
-  }
-
-  /**
-   * Presenter interface for the {@link FeedsAdapter}.
-   * 
-   * @author crazywater
-   * 
-   */
-  public interface Presenter {
-    void feedClicked(DBFeed feed);
   }
 }

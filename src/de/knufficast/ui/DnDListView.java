@@ -47,6 +47,7 @@ public class DnDListView extends ListView {
   public DnDListView(Context context, AttributeSet attributeSet) {
     super(context, attributeSet);
     this.setOnDragListener(myDragEventListener);
+    this.setOnItemClickListener(myClickListener);
     this.setOnItemLongClickListener(myLongClickListener);
   }
   
@@ -181,8 +182,15 @@ public class DnDListView extends ListView {
     }
   };
 
-  private View.OnDragListener myDragEventListener = new View.OnDragListener() {
+  private OnItemClickListener myClickListener = new OnItemClickListener() {
+    @Override
+    public void onItemClick(AdapterView<?> arg0, View arg1, int position,
+        long arg3) {
+      listener.click(position);
+    }
+  };
 
+  private View.OnDragListener myDragEventListener = new View.OnDragListener() {
     @Override
     public boolean onDrag(View v, DragEvent event) {
       final int action = event.getAction();
@@ -234,6 +242,8 @@ public class DnDListView extends ListView {
    */
   public interface Listener {
     void drop(int from, int to);
+
+    void click(int which);
     void remove(int which);
   }
 }

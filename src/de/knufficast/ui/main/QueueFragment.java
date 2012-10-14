@@ -109,14 +109,20 @@ public class QueueFragment extends BaseFragment implements
     }
   };
 
-  private DnDListView.Listener dndListener = new DnDListView.Listener() {
+  private final DnDListView.Listener dndListener = new DnDListView.Listener() {
     @Override
     public void drop(int from, int to) {
       presenter.moveEpisode(ourQueue.get(from), to);
     }
 
+    @Override
     public void remove(int which) {
       presenter.removeEpisode(ourQueue.get(which));
+    }
+
+    @Override
+    public void click(int which) {
+      presenter.episodeClicked(ourQueue.get(which));
     }
   };
 
@@ -272,11 +278,6 @@ public class QueueFragment extends BaseFragment implements
     int visibility = enabled ? View.VISIBLE : View.GONE;
     elapsedTime.setVisibility(visibility);
     totalTime.setVisibility(visibility);
-  }
-
-  @Override
-  public void episodeClicked(DBEpisode episode) {
-    presenter.episodeClicked(episode);
   }
 
   /**
