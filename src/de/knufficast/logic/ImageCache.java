@@ -33,7 +33,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.util.Base64;
 import de.knufficast.R;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.NewImageEvent;
@@ -84,8 +83,7 @@ public class ImageCache {
       return imageMap.get(url);
     }
     if (netUtil.isOnWifi()) {
-      final String filename = "imageCache-file-"
-          + Base64.encodeToString(url.getBytes(), Base64.NO_PADDING);
+      final String filename = "imageCache-file-" + url.hashCode();
       new DownloadTask(context, null, new BooleanCallback<Void, Void>() {
         @Override
         public void success(Void unused) {

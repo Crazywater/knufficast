@@ -252,7 +252,11 @@ public class QueuePlayer {
     if (progressListener != null) {
       stopProgressReporter();
     }
-    context.unregisterReceiver(audioUnpluggedReceiver);
+    try {
+      context.unregisterReceiver(audioUnpluggedReceiver);
+    } catch (IllegalArgumentException e) {
+      // was already unregistered
+    }
     player.pause();
     notificationArea.unregister();
     remoteController.updateState(false);

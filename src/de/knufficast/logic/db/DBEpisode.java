@@ -15,7 +15,6 @@
  ******************************************************************************/
 package de.knufficast.logic.db;
 
-import android.util.Base64;
 import de.knufficast.App;
 import de.knufficast.events.EpisodeDownloadProgressEvent;
 import de.knufficast.events.EpisodeDownloadStateEvent;
@@ -114,8 +113,7 @@ public class DBEpisode {
   public String getFileLocation() {
     String urlStr = getDataUrl();
     String[] splitted = urlStr.split("/");
-    return Base64.encodeToString(urlStr.getBytes(), Base64.NO_PADDING)
-        + splitted[splitted.length - 1];
+    return "podcast-" + urlStr.hashCode() + "-" + splitted[splitted.length - 1];
   }
 
   public FlattrState getFlattrState() {
