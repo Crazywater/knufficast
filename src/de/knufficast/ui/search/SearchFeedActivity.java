@@ -30,7 +30,7 @@ import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
 import de.knufficast.events.NewImageEvent;
 import de.knufficast.logic.AddFeedTask;
-import de.knufficast.search.GPodderSearch;
+import de.knufficast.search.ITunesSearch;
 import de.knufficast.search.PodcastSearch;
 import de.knufficast.search.PodcastSearch.Result;
 import de.knufficast.ui.main.MainActivity;
@@ -45,7 +45,7 @@ public class SearchFeedActivity extends Activity implements
   private ListView searchResultsList;
   private ProgressDialog progressDialog;
 
-  private final PodcastSearch podcastSearch = new GPodderSearch();
+  private final PodcastSearch podcastSearch = new ITunesSearch();
   private final List<Result> searchResults = new ArrayList<Result>();
 
   private final Listener<NewImageEvent> newImageListener = new Listener<NewImageEvent>() {
