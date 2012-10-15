@@ -88,7 +88,16 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
       }
       if (!isCancelled()) {
         connection.connect();
-
+        if (connection.getResponseCode() / 100 == 3) {
+          // redirect
+          String location = connection.getHeaderField("Location");
+          connection = (HttpURLConnection) new URL(location).openConnection();
+          if (append) {
+            connection.setRequestProperty("Range", "bytes="
+                + initiallyDownloaded + "-");
+          }
+          connection.connect();
+        }
         if (connection.getResponseCode() == 416) {
           file.delete();
           throw new RuntimeException("Invalid data range, need to redownload");

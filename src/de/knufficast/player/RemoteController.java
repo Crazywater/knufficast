@@ -26,8 +26,8 @@ import android.media.RemoteControlClient;
 import android.media.RemoteControlClient.MetadataEditor;
 import de.knufficast.App;
 import de.knufficast.logic.ImageCache;
-import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBFeed;
+import de.knufficast.logic.db.DBEpisode;
+import de.knufficast.logic.db.DBFeed;
 
 /**
  * Controls the RemoteControlClient for the media server (lock screen controls).

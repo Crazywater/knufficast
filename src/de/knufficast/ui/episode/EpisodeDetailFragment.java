@@ -34,12 +34,12 @@ import de.knufficast.events.EventBus;
 import de.knufficast.events.FlattrStateEvent;
 import de.knufficast.events.Listener;
 import de.knufficast.events.PlayerProgressEvent;
-import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBEpisode.DownloadState;
-import de.knufficast.logic.model.DBEpisode.FlattrState;
-import de.knufficast.logic.model.DBEpisode.PlayState;
-import de.knufficast.logic.model.DBFeed;
-import de.knufficast.logic.model.Queue;
+import de.knufficast.logic.db.DBEpisode;
+import de.knufficast.logic.db.DBFeed;
+import de.knufficast.logic.db.Queue;
+import de.knufficast.logic.db.DBEpisode.DownloadState;
+import de.knufficast.logic.db.DBEpisode.FlattrState;
+import de.knufficast.logic.db.DBEpisode.PlayState;
 import de.knufficast.ui.BaseFragment;
 import de.knufficast.util.TimeUtil;
 

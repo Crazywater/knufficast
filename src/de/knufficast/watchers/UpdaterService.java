@@ -31,12 +31,12 @@ import android.content.Intent;
 import android.os.SystemClock;
 import android.util.Log;
 import de.knufficast.App;
-import de.knufficast.logic.Configuration;
 import de.knufficast.logic.FeedDownloader;
-import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBFeed;
-import de.knufficast.logic.model.XMLFeed;
-import de.knufficast.logic.model.XMLToDBWriter;
+import de.knufficast.logic.db.Configuration;
+import de.knufficast.logic.db.DBEpisode;
+import de.knufficast.logic.db.DBFeed;
+import de.knufficast.logic.db.XMLToDBWriter;
+import de.knufficast.logic.xml.XMLFeed;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.NetUtil;
 

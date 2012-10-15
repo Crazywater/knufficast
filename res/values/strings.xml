@@ -7,6 +7,9 @@
     <string name="menu_refresh_feeds">Refresh Feeds</string>
     <string name="add_feed_button">Add</string>
     <string name="search_feed_hint">Search or enter URL</string>
+    <string name="search_result_feed_url">Feed URL: %s</string>
+    <string name="add_feed_progress_title">Subscribing to the feed&#8230;</string>
+    <string name="add_feed_progress_message">Please stand by while I go and fetch the feed data.</string>
     <string name="add_feed_failed">Adding the feed failed.</string>
     <string name="title_activity_feed_detail">Feed details</string>
     <string name="title_activity_episode_detail">Episode details</string>
@@ -71,6 +74,7 @@
     <string name="hour_6">every 6 hours</string>
     <string name="day_1">every day</string>
     <string name="week_1">every week</string>
+    <string name="tap_plus_to_add_feed">You have no subscriptions. Tap the plus to add some.</string>
     <string name="episode_progress_downloaded">downloaded</string>
     <string name="episode_progress_listened">listened</string>
     <string name="episode_progress_flattred">flattred</string>

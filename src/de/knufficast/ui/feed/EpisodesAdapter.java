@@ -28,7 +28,7 @@ import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
 import de.knufficast.logic.ImageCache;
-import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.db.DBEpisode;
 
 /**
  * Adapter that transforms episodes into a list.

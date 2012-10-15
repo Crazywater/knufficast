@@ -20,7 +20,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.KeyEvent;
 import de.knufficast.App;
-import de.knufficast.logic.model.Queue;
+import de.knufficast.logic.db.Queue;
 
 public class MediaButtonReceiver extends BroadcastReceiver {
   @Override

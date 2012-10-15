@@ -19,6 +19,7 @@ import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -29,9 +30,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import de.knufficast.App;
 import de.knufficast.R;
-import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBFeed;
-import de.knufficast.logic.model.Queue;
+import de.knufficast.logic.db.DBEpisode;
+import de.knufficast.logic.db.DBFeed;
+import de.knufficast.logic.db.Queue;
 import de.knufficast.player.QueuePlayer;
 import de.knufficast.ui.BaseFragment;
 import de.knufficast.ui.episode.EpisodeDetailActivity;
@@ -149,14 +150,15 @@ public class MainActivity extends FragmentActivity implements
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
     case R.id.menu_add_feed:
-      startActivity(new Intent(this, SearchFeedActivity.class));
+      addFeedClicked();
       return true;
     case R.id.menu_settings:
       startActivity(new Intent(this, SettingsActivity.class));
       return true;
     case R.id.menu_refresh_feeds:
       // hack to pass an unused argument... one null doesn't work :D
-      new ToastRefresherTask(this).execute(null, null);
+      new ToastRefresherTask(this).executeOnExecutor(
+          AsyncTask.THREAD_POOL_EXECUTOR, null, null);
       return true;
     default:
       return super.onOptionsItemSelected(item);
@@ -232,5 +234,10 @@ public class MainActivity extends FragmentActivity implements
 
   @Override
   public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+  }
+
+  @Override
+  public void addFeedClicked() {
+    startActivity(new Intent(this, SearchFeedActivity.class));
   }
 }

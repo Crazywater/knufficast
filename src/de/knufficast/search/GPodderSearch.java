@@ -1,4 +1,4 @@
-package de.knufficast.gpodder;
+package de.knufficast.search;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -13,13 +13,13 @@ import org.json.JSONObject;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.HttpUtil;
 
-public class GPodderSearch {
+public class GPodderSearch implements PodcastSearch {
   private static final String SEARCH_URL = "http://gpodder.net/search.json?q=%s";
   private static final String ERROR_CONNECTION = "No connection";
   private static final String ERROR_JSON = "JSON Error";
   private final HttpUtil httpUtil = new HttpUtil();
 
-  public class Result {
+  public class GPodderResult implements PodcastSearch.Result {
     private String title = "";
     private String website = "";
     private String description = "";
@@ -34,7 +34,7 @@ public class GPodderSearch {
       return description;
     }
 
-    public String feedUrl() {
+    public String getFeedUrl() {
       return feedUrl;
     }
 
@@ -60,7 +60,7 @@ public class GPodderSearch {
           int max = response.length();
           for (int i = 0; i < max; i++) {
             JSONObject jsonResult = response.getJSONObject(i);
-            Result result = new Result();
+            GPodderResult result = new GPodderResult();
             result.website = jsonResult.optString("website");
             result.description = jsonResult.optString("description");
             result.title = jsonResult.optString("title");

@@ -15,7 +15,7 @@
  ******************************************************************************/
 package de.knufficast.events;
 
-import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.db.DBEpisode;
 
 /**
  * An event that is fired when the {@link Queue} has its head removed.

@@ -15,7 +15,7 @@
  ******************************************************************************/
 package de.knufficast.events;
 
-import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.db.DBEpisode;
 
 /**
  * An event that is fired after the player has played a while, to notify

@@ -21,15 +21,17 @@ import java.util.List;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
 import de.knufficast.events.NewImageEvent;
-import de.knufficast.logic.model.DBFeed;
+import de.knufficast.logic.db.DBFeed;
 import de.knufficast.ui.BaseFragment;
 
 /**
@@ -43,6 +45,7 @@ public class FeedsFragment extends BaseFragment {
   private EventBus eventBus;
   private FeedsAdapter feedsAdapter;
   private ListView feedsList;
+  private TextView noFeeds;
 
   private List<DBFeed> feeds = new ArrayList<DBFeed>();
 
@@ -72,13 +75,13 @@ public class FeedsFragment extends BaseFragment {
     eventBus = App.get().getEventBus();
   }
 
-
   @Override
   public void onStart() {
     super.onStart();
-    refreshFeeds();
-
     feedsList = findView(R.id.feeds_list_view);
+    noFeeds = findView(R.id.feeds_no_feeds);
+
+    refreshFeeds();
 
     feedsList.setAdapter(feedsAdapter);
     feedsList.setOnItemClickListener(new OnItemClickListener() {
@@ -86,6 +89,13 @@ public class FeedsFragment extends BaseFragment {
       public void onItemClick(AdapterView<?> arg0, View view, int position,
           long id) {
         presenter.feedClicked(feeds.get(position));
+      }
+    });
+
+    noFeeds.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        presenter.addFeedClicked();
       }
     });
 
@@ -116,10 +126,12 @@ public class FeedsFragment extends BaseFragment {
   public void refreshFeeds() {
     feeds.clear();
     feeds.addAll(App.get().getConfiguration().getAllFeeds());
+    noFeeds.setVisibility(feeds.isEmpty() ? View.VISIBLE : View.GONE);
     feedsAdapter.notifyDataSetChanged();
   }
 
   public interface Presenter {
     void feedClicked(DBFeed feed);
+    void addFeedClicked();
   }
 }

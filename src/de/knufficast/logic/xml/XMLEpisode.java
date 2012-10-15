@@ -13,29 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package de.knufficast.logic.model;
+package de.knufficast.logic.xml;
 
-import java.util.ArrayList;
-import java.util.List;
+import de.knufficast.logic.RssParser;
 
-public class XMLFeed {
-  private String dataUrl = "";
+/**
+ * In-memory representation of an episode that has been fetched by the
+ * {@link RssParser} but not yet written to the database.
+ * 
+ * @author crazywater
+ * 
+ */
+public class XMLEpisode {
   private String title = "";
   private String description = "";
-  private String encoding = "";
-  private long lastUpdated = 0;
-  private String eTag = "";
+  private String guid = "";
+  private String dataUrl = "";
   private String imgUrl = "";
-
-  private final List<XMLEpisode> episodes = new ArrayList<XMLEpisode>();
-
-  public String getDataUrl() {
-    return dataUrl;
-  }
-
-  public void setDataUrl(String dataUrl) {
-    this.dataUrl = dataUrl;
-  }
+  private String flattrUrl = "";
+  private String content = "";
 
   public String getTitle() {
     return title;
@@ -53,28 +49,20 @@ public class XMLFeed {
     this.description = description;
   }
 
-  public String getEncoding() {
-    return encoding;
+  public String getGuid() {
+    return guid;
   }
 
-  public void setEncoding(String encoding) {
-    this.encoding = encoding;
+  public void setGuid(String guid) {
+    this.guid = guid;
   }
 
-  public long getLastUpdated() {
-    return lastUpdated;
+  public String getDataUrl() {
+    return dataUrl;
   }
 
-  public void setLastUpdated(long lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
-
-  public String getETag() {
-    return eTag;
-  }
-
-  public void setETag(String eTag) {
-    this.eTag = eTag;
+  public void setDataUrl(String dataUrl) {
+    this.dataUrl = dataUrl;
   }
 
   public String getImgUrl() {
@@ -85,11 +73,19 @@ public class XMLFeed {
     this.imgUrl = imgUrl;
   }
 
-  public void addEpisode(XMLEpisode episode) {
-    episodes.add(episode);
+  public String getFlattrUrl() {
+    return flattrUrl;
   }
 
-  public List<XMLEpisode> getEpisodes() {
-    return episodes;
+  public void setFlattrUrl(String flattrUrl) {
+    this.flattrUrl = flattrUrl;
+  }
+
+  public void setContent(String content) {
+    this.content = content;
+  }
+
+  public String getContent() {
+    return content;
   }
 }

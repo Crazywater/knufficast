@@ -21,8 +21,8 @@ import android.util.Log;
 import de.knufficast.App;
 import de.knufficast.flattr.FlattrApi;
 import de.knufficast.flattr.FlattrQueue;
-import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBEpisode.FlattrState;
+import de.knufficast.logic.db.DBEpisode;
+import de.knufficast.logic.db.DBEpisode.FlattrState;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.NetUtil;
 

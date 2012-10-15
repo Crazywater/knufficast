@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import de.knufficast.App;
 import de.knufficast.events.FlattrQueueEvent;
-import de.knufficast.logic.model.DBEpisode;
+import de.knufficast.logic.db.DBEpisode;
 
 /**
  * The queue of things left to flattr.

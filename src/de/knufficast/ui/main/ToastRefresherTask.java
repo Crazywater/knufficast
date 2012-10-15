@@ -19,7 +19,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import de.knufficast.R;
-import de.knufficast.logic.model.DBFeed;
+import de.knufficast.logic.db.DBFeed;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.watchers.UpdaterService;
 

@@ -5,8 +5,13 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -24,9 +29,10 @@ import de.knufficast.R;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
 import de.knufficast.events.NewImageEvent;
-import de.knufficast.gpodder.GPodderSearch;
-import de.knufficast.gpodder.GPodderSearch.Result;
 import de.knufficast.logic.AddFeedTask;
+import de.knufficast.search.GPodderSearch;
+import de.knufficast.search.PodcastSearch;
+import de.knufficast.search.PodcastSearch.Result;
 import de.knufficast.ui.main.MainActivity;
 import de.knufficast.ui.settings.SettingsActivity;
 import de.knufficast.util.BooleanCallback;
@@ -34,11 +40,12 @@ import de.knufficast.util.BooleanCallback;
 public class SearchFeedActivity extends Activity implements
     AddFeedTask.Presenter {
   private SearchView searchView;
-  private ProgressBar addProgress;
+  private ProgressBar searchProgress;
   private AddFeedTask addFeedTask;
   private ListView searchResultsList;
+  private ProgressDialog progressDialog;
 
-  private final GPodderSearch gPodderSearch = new GPodderSearch();
+  private final PodcastSearch podcastSearch = new GPodderSearch();
   private final List<Result> searchResults = new ArrayList<Result>();
 
   private final Listener<NewImageEvent> newImageListener = new Listener<NewImageEvent>() {
@@ -48,18 +55,28 @@ public class SearchFeedActivity extends Activity implements
     }
   };
 
+  private final OnItemClickListener addFeedListener = new OnItemClickListener() {
+    @Override
+    public void onItemClick(AdapterView<?> arg0, View view, int position,
+        long arg3) {
+      // toggle details
+      addFeed(searchResults.get(position).getFeedUrl());
+    }
+  };
+
   private SearchResultsAdapter searchResultsAdapter;
   private EventBus eventBus;
 
   private final BooleanCallback<List<Result>, String> searchCallback = new BooleanCallback<List<Result>, String>() {
     @Override
     public void success(List<Result> a) {
-      Log.d("SearchFeedActivity", "GPodder success callback: " + a.size());
+      Log.d("SearchFeedActivity", "Search success callback: " + a.size());
       searchResults.clear();
       searchResults.addAll(a);
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
+          searchProgress.setVisibility(View.GONE);
           searchResultsAdapter.notifyDataSetChanged();
         }
       });
@@ -67,11 +84,12 @@ public class SearchFeedActivity extends Activity implements
 
     @Override
     public void fail(String error) {
-      Log.d("SearchFeedActivity", "GPodder error callback: " + error);
+      Log.d("SearchFeedActivity", "Search error callback: " + error);
       searchResults.clear();
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
+          searchProgress.setVisibility(View.GONE);
           searchResultsAdapter.notifyDataSetChanged();
         }
       });
@@ -83,7 +101,7 @@ public class SearchFeedActivity extends Activity implements
     getActionBar().setDisplayHomeAsUpEnabled(true);
     setContentView(R.layout.activity_feed_search);
 
-    addProgress = (ProgressBar) findViewById(R.id.add_feed_progress);
+    searchProgress = (ProgressBar) findViewById(R.id.add_feed_progress);
     searchView = (SearchView) findViewById(R.id.add_feed_search);
     searchResultsList = (ListView) findViewById(R.id.add_feed_search_results);
 
@@ -91,19 +109,7 @@ public class SearchFeedActivity extends Activity implements
         R.layout.search_result_list_item, searchResults);
     searchResultsList.setAdapter(searchResultsAdapter);
 
-    searchResultsList.setOnItemClickListener(new OnItemClickListener() {
-      @Override
-      public void onItemClick(AdapterView<?> arg0, View view, int arg2,
-          long arg3) {
-        // toggle details
-        View details = view.findViewById(R.id.search_result_details);
-        if (details.getVisibility() == View.VISIBLE) {
-          details.setVisibility(View.GONE);
-        } else {
-          details.setVisibility(View.VISIBLE);
-        }
-      }
-    });
+    searchResultsList.setOnItemClickListener(addFeedListener);
   }
 
   @Override
@@ -126,17 +132,17 @@ public class SearchFeedActivity extends Activity implements
         String input = searchView.getQuery().toString();
         if (!"".equals(input)) {
           if (input.startsWith("http://") || input.startsWith("https://")
-              || input.startsWith("www")) {
+              || input.startsWith("www.")) {
             addFeed(input);
           } else {
+            searchProgress.setVisibility(View.VISIBLE);
             Log.d("SearchFeedActivity", "gpodder search for " + input);
-            gPodderSearch.search(input, searchCallback);
+            podcastSearch.search(input, searchCallback);
           }
         }
         return true;
       }
     });
-    updateAddButtonVisibility();
 
     eventBus = App.get().getEventBus();
     eventBus.addListener(NewImageEvent.class, newImageListener);
@@ -144,7 +150,7 @@ public class SearchFeedActivity extends Activity implements
 
   private void addFeed(String url) {
     addFeedTask = new AddFeedTask(this);
-    addFeedTask.execute(url);
+    addFeedTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url);
   }
 
   @Override
@@ -155,6 +161,12 @@ public class SearchFeedActivity extends Activity implements
     }
 
     eventBus.removeListener(NewImageEvent.class, newImageListener);
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    App.get().getImageCache().freeTempResources();
   }
 
   @Override
@@ -185,27 +197,47 @@ public class SearchFeedActivity extends Activity implements
     return true;
   }
 
-  private void updateAddButtonVisibility() {
-    boolean adding = addFeedTask != null;
-    addProgress.setVisibility(adding ? View.VISIBLE : View.GONE);
-  }
-
   @Override
   public void onFeedAdded() {
     addFeedTask = null;
+    disableProgressDialog();
     finish();
   }
 
   @Override
   public void onFeedAddError(String error) {
     addFeedTask = null;
-    updateAddButtonVisibility();
+    disableProgressDialog();
     new AlertDialog.Builder(this).setTitle(R.string.add_feed_failed)
         .setMessage(error).show();
   }
 
   @Override
   public void onStartAddingFeed() {
-    updateAddButtonVisibility();
+    enableProgressDialog();
+  }
+
+  private void enableProgressDialog() {
+    String title = getString(R.string.add_feed_progress_title);
+    String message = getString(R.string.add_feed_progress_message);
+    progressDialog = ProgressDialog.show(this, title, message);
+    progressDialog.setCancelable(true);
+    progressDialog.setOnCancelListener(new OnCancelListener() {
+      @Override
+      public void onCancel(DialogInterface dialog) {
+        addFeedTask.cancel(true);
+      }
+    });
+    // lock orientation
+    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+  }
+
+  private void disableProgressDialog() {
+    if (progressDialog != null) {
+      progressDialog.dismiss();
+      progressDialog = null;
+    }
+    // unlock orientation
+    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
   }
 }

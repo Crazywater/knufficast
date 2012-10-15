@@ -23,9 +23,9 @@ import java.util.Map;
 
 import org.xmlpull.v1.XmlPullParserException;
 
-import de.knufficast.logic.model.DBFeed;
-import de.knufficast.logic.model.XMLEpisode;
-import de.knufficast.logic.model.XMLFeed;
+import de.knufficast.logic.db.DBFeed;
+import de.knufficast.logic.xml.XMLEpisode;
+import de.knufficast.logic.xml.XMLFeed;
 
 /**
  * A parser for XML podcast feeds. Produces {@link DBFeed} objects.

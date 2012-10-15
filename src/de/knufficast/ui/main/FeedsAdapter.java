@@ -28,7 +28,7 @@ import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
 import de.knufficast.logic.ImageCache;
-import de.knufficast.logic.model.DBFeed;
+import de.knufficast.logic.db.DBFeed;
 
 /**
  * An adapter for displaying {@link DBFeed}s in a ListView.

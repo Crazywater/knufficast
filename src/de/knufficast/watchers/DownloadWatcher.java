@@ -21,9 +21,9 @@ import de.knufficast.events.EpisodeDownloadStateEvent;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
 import de.knufficast.events.QueueChangedEvent;
-import de.knufficast.logic.Configuration;
-import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBEpisode.DownloadState;
+import de.knufficast.logic.db.Configuration;
+import de.knufficast.logic.db.DBEpisode;
+import de.knufficast.logic.db.DBEpisode.DownloadState;
 import de.knufficast.util.NetUtil;
 
 /**

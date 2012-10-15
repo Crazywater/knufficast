@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package de.knufficast.logic;
+package de.knufficast.logic.db;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +21,8 @@ import java.util.List;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import de.knufficast.App;
-import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBEpisode.DownloadState;
-import de.knufficast.logic.model.DBFeed;
-import de.knufficast.logic.model.SQLiteHelper;
+import de.knufficast.logic.FlattrConfiguration;
+import de.knufficast.logic.db.DBEpisode.DownloadState;
 import de.knufficast.watchers.UpdaterService;
 
 /**

@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
-import de.knufficast.gpodder.GPodderSearch.Result;
+import de.knufficast.search.PodcastSearch.Result;
 
 public class SearchResultsAdapter extends ArrayAdapter<Result> {
   private final List<Result> data;
@@ -44,10 +44,16 @@ public class SearchResultsAdapter extends ArrayAdapter<Result> {
     description.setText(result.getDescription());
     TextView website = (TextView) row.findViewById(R.id.search_result_website);
     website.setText(result.getWebsite());
+    website.setFocusable(false);
+    website.setFocusableInTouchMode(false);
+    TextView feedUrl = (TextView) row.findViewById(R.id.search_result_feed_url);
+    feedUrl.setText(context.getString(R.string.search_result_feed_url,
+        result.getFeedUrl()));
 
     ImageView icon = (ImageView) row.findViewById(R.id.search_result_list_icon);
     icon.setImageDrawable(App.get().getImageCache()
-        .getResource(result.getImgUrl()));
+        .getTempResource(result.getImgUrl()));
+
     return row;
   }
 }

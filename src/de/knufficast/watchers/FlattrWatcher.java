@@ -23,9 +23,9 @@ import de.knufficast.events.FlattrQueueEvent;
 import de.knufficast.events.Listener;
 import de.knufficast.events.QueuePoppedEvent;
 import de.knufficast.flattr.FlattrQueue;
-import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBEpisode.FlattrState;
-import de.knufficast.logic.model.DBEpisode.PlayState;
+import de.knufficast.logic.db.DBEpisode;
+import de.knufficast.logic.db.DBEpisode.FlattrState;
+import de.knufficast.logic.db.DBEpisode.PlayState;
 
 /**
  * A watcher that starts the {@link FlattrQueueService} whenever something new

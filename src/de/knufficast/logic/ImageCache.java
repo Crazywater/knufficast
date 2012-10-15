@@ -15,6 +15,7 @@
  ******************************************************************************/
 package de.knufficast.logic;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -22,19 +23,24 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
+import android.util.Base64;
 import de.knufficast.R;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.NewImageEvent;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.NetUtil;
 import de.knufficast.util.file.ExternalFileUtil;
+import de.knufficast.util.file.FileUtil;
 import de.knufficast.util.file.InternalFileUtil;
 
 /**
@@ -48,20 +54,24 @@ public class ImageCache {
   private final Map<String, String> urlToFile = new HashMap<String, String>();
   private final Map<String, BitmapDrawable> imageMap = new HashMap<String, BitmapDrawable>();
 
+  private final Set<String> tempUrls = new HashSet<String>();
+
   private final Context context;
   private final EventBus eventBus;
   private final NetUtil netUtil;
+  private final FileUtil fileUtil;
   private BitmapDrawable defaultIcon;
 
   public ImageCache(Context context, EventBus eventBus) {
     this.context = context;
     this.eventBus = eventBus;
     this.netUtil = new NetUtil(context);
+    fileUtil = new ExternalFileUtil(context);
   }
 
   /**
    * Get a {@link Drawable} from a URL. Might return the default icon first and
-   * fire an {@link NewImageEvent} later.
+   * fire a {@link NewImageEvent} later.
    */
   public BitmapDrawable getResource(final String url) {
     if (url == null || "".equals(url)) {
@@ -74,7 +84,8 @@ public class ImageCache {
       return imageMap.get(url);
     }
     if (netUtil.isOnWifi()) {
-      final String filename = "imageCache-file-" + url.hashCode();
+      final String filename = "imageCache-file-"
+          + Base64.encodeToString(url.getBytes(), Base64.NO_PADDING);
       new DownloadTask(context, null, new BooleanCallback<Void, Void>() {
         @Override
         public void success(Void unused) {
@@ -84,9 +95,35 @@ public class ImageCache {
         @Override
         public void fail(Void unused) {
         }
-      }).execute(url, filename);
+      }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url, filename);
     }
     return getDefaultIcon();
+  }
+
+  /**
+   * Get a {@link Drawable} from a URL, temporarily. The temporarily received
+   * resources can then be freed using {@link #freeTempResources}. This is used
+   * for temporary images, as in search results.
+   */
+  public BitmapDrawable getTempResource(final String url) {
+    tempUrls.add(url);
+    return getResource(url);
+  }
+
+  /**
+   * Removes all images that have been added by {@link #getTempResource} from
+   * the cache.
+   */
+  public void freeTempResources() {
+    for (String url : tempUrls) {
+      if (urlToFile.containsKey(url)) {
+        File file = fileUtil.resolveFile(urlToFile.get(url));
+        file.delete();
+        urlToFile.remove(url);
+      }
+      imageMap.remove(url);
+    }
+    tempUrls.clear();
   }
 
   /**
@@ -99,8 +136,8 @@ public class ImageCache {
 
   private void insertDrawable(String url) {
     try {
-      Bitmap bitmap = BitmapFactory.decodeStream(new ExternalFileUtil(context)
-          .read(urlToFile.get(url)));
+      Bitmap bitmap = BitmapFactory.decodeStream(fileUtil.read(urlToFile
+          .get(url)));
       BitmapDrawable drawable = new BitmapDrawable(context.getResources(),
           bitmap);
       imageMap.put(url, drawable);

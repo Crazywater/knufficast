@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package de.knufficast.logic.model;
+package de.knufficast.logic.db;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +21,9 @@ import java.util.Collections;
 import java.util.List;
 
 import de.knufficast.App;
+import de.knufficast.logic.xml.FeedPostProcessor;
+import de.knufficast.logic.xml.XMLEpisode;
+import de.knufficast.logic.xml.XMLFeed;
 
 /**
  * A writer that gets feeds and adds them to the database or merges them with

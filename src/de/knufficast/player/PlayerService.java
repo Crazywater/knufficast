@@ -30,8 +30,8 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import de.knufficast.App;
 import de.knufficast.events.PlayerErrorEvent;
-import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBEpisode.PlayState;
+import de.knufficast.logic.db.DBEpisode;
+import de.knufficast.logic.db.DBEpisode.PlayState;
 import de.knufficast.util.Callback;
 import de.knufficast.util.file.ExternalFileUtil;
 

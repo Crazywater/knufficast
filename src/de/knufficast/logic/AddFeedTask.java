@@ -24,8 +24,9 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import de.knufficast.logic.model.XMLFeed;
-import de.knufficast.logic.model.XMLToDBWriter;
+import de.knufficast.logic.db.Configuration;
+import de.knufficast.logic.db.XMLToDBWriter;
+import de.knufficast.logic.xml.XMLFeed;
 import de.knufficast.watchers.QueueDownloader;
 
 /**

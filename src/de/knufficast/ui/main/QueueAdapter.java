@@ -33,9 +33,9 @@ import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
 import de.knufficast.logic.ImageCache;
-import de.knufficast.logic.model.DBEpisode;
-import de.knufficast.logic.model.DBEpisode.DownloadState;
-import de.knufficast.logic.model.DBFeed;
+import de.knufficast.logic.db.DBEpisode;
+import de.knufficast.logic.db.DBFeed;
+import de.knufficast.logic.db.DBEpisode.DownloadState;
 import de.knufficast.ui.DnDListView;
 
 /**

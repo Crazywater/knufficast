@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.xmlpull.v1.XmlPullParserException;
 
-import de.knufficast.logic.model.XMLFeed;
+import de.knufficast.logic.xml.XMLFeed;
 
 /**
  * A thin layer around {@link RssParser} that extracts further information about
