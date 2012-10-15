@@ -26,13 +26,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import de.knufficast.R;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.NewImageEvent;
@@ -49,11 +52,16 @@ import de.knufficast.util.file.InternalFileUtil;
  */
 public class ImageCache {
   private static final String IMAGECACHE_FILENAME = "imageCache-index";
+  private static final int MAX_DOWNLOAD_THREADS = 5;
 
   private final Map<String, String> urlToFile = new HashMap<String, String>();
   private final Map<String, BitmapDrawable> imageMap = new HashMap<String, BitmapDrawable>();
 
   private final Set<String> tempUrls = new HashSet<String>();
+
+  private final BlockingQueue<Runnable> downloadTaskQueue = new LinkedBlockingQueue<Runnable>();
+  private final ThreadPoolExecutor downloadExecutor = new ThreadPoolExecutor(1,
+      MAX_DOWNLOAD_THREADS, 5, TimeUnit.SECONDS, downloadTaskQueue);
 
   private final Context context;
   private final EventBus eventBus;
@@ -84,16 +92,18 @@ public class ImageCache {
     }
     if (netUtil.isOnWifi()) {
       final String filename = "imageCache-file-" + url.hashCode();
-      new DownloadTask(context, null, new BooleanCallback<Void, Void>() {
-        @Override
-        public void success(Void unused) {
-          notifyNewImage(url, filename);
-        }
+      DownloadTask task = new DownloadTask(context, null,
+          new BooleanCallback<Void, Void>() {
+            @Override
+            public void success(Void unused) {
+              notifyNewImage(url, filename);
+            }
 
-        @Override
-        public void fail(Void unused) {
-        }
-      }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url, filename);
+            @Override
+            public void fail(Void unused) {
+            }
+          });
+      task.executeOnExecutor(downloadExecutor, url, filename);
     }
     return getDefaultIcon();
   }
@@ -113,6 +123,7 @@ public class ImageCache {
    * the cache.
    */
   public void freeTempResources() {
+    downloadTaskQueue.clear();
     for (String url : tempUrls) {
       if (urlToFile.containsKey(url)) {
         File file = fileUtil.resolveFile(urlToFile.get(url));
