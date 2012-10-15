@@ -38,7 +38,7 @@ public class GPodderSearch {
       return feedUrl;
     }
 
-    public String imgUrl() {
+    public String getImgUrl() {
       return imgUrl;
     }
 

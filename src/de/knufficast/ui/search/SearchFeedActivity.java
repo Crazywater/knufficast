@@ -1,39 +1,109 @@
 package de.knufficast.ui.search;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.widget.SearchView;
+import android.widget.SearchView.OnQueryTextListener;
+import de.knufficast.App;
 import de.knufficast.R;
+import de.knufficast.events.EventBus;
+import de.knufficast.events.Listener;
+import de.knufficast.events.NewImageEvent;
+import de.knufficast.gpodder.GPodderSearch;
+import de.knufficast.gpodder.GPodderSearch.Result;
 import de.knufficast.logic.AddFeedTask;
 import de.knufficast.ui.main.MainActivity;
 import de.knufficast.ui.settings.SettingsActivity;
+import de.knufficast.util.BooleanCallback;
 
 public class SearchFeedActivity extends Activity implements
     AddFeedTask.Presenter {
-  private TextView addText;
-  private Button addButton;
+  private SearchView searchView;
   private ProgressBar addProgress;
   private AddFeedTask addFeedTask;
+  private ListView searchResultsList;
 
+  private final GPodderSearch gPodderSearch = new GPodderSearch();
+  private final List<Result> searchResults = new ArrayList<Result>();
+
+  private final Listener<NewImageEvent> newImageListener = new Listener<NewImageEvent>() {
+    @Override
+    public void onEvent(NewImageEvent event) {
+      searchResultsAdapter.notifyDataSetChanged();
+    }
+  };
+
+  private SearchResultsAdapter searchResultsAdapter;
+  private EventBus eventBus;
+
+  private final BooleanCallback<List<Result>, String> searchCallback = new BooleanCallback<List<Result>, String>() {
+    @Override
+    public void success(List<Result> a) {
+      Log.d("SearchFeedActivity", "GPodder success callback: " + a.size());
+      searchResults.clear();
+      searchResults.addAll(a);
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          searchResultsAdapter.notifyDataSetChanged();
+        }
+      });
+    }
+
+    @Override
+    public void fail(String error) {
+      Log.d("SearchFeedActivity", "GPodder error callback: " + error);
+      searchResults.clear();
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          searchResultsAdapter.notifyDataSetChanged();
+        }
+      });
+    }
+  };
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getActionBar().setDisplayHomeAsUpEnabled(true);
     setContentView(R.layout.activity_feed_search);
 
-    addButton = (Button) findViewById(R.id.add_feed_button);
     addProgress = (ProgressBar) findViewById(R.id.add_feed_progress);
-    addText = (TextView) findViewById(R.id.add_feed_text);
+    searchView = (SearchView) findViewById(R.id.add_feed_search);
+    searchResultsList = (ListView) findViewById(R.id.add_feed_search_results);
+
+    searchResultsAdapter = new SearchResultsAdapter(this,
+        R.layout.search_result_list_item, searchResults);
+    searchResultsList.setAdapter(searchResultsAdapter);
+
+    searchResultsList.setOnItemClickListener(new OnItemClickListener() {
+      @Override
+      public void onItemClick(AdapterView<?> arg0, View view, int arg2,
+          long arg3) {
+        // toggle details
+        View details = view.findViewById(R.id.search_result_details);
+        if (details.getVisibility() == View.VISIBLE) {
+          details.setVisibility(View.GONE);
+        } else {
+          details.setVisibility(View.VISIBLE);
+        }
+      }
+    });
   }
 
   @Override
@@ -42,20 +112,39 @@ public class SearchFeedActivity extends Activity implements
 
     Uri uri = getIntent().getData();
     if (uri != null) {
-      addText.setText(uri.toString());
+      searchView.setQuery(uri.toString(), true);
     }
 
-    addButton.setOnClickListener(new OnClickListener() {
+    searchView.setOnQueryTextListener(new OnQueryTextListener() {
       @Override
-      public void onClick(View unused) {
-        String input = addText.getText().toString();
+      public boolean onQueryTextChange(String newText) {
+        return false;
+      }
+
+      @Override
+      public boolean onQueryTextSubmit(String query) {
+        String input = searchView.getQuery().toString();
         if (!"".equals(input)) {
-          addFeedTask = new AddFeedTask(SearchFeedActivity.this);
-          addFeedTask.execute(input);
+          if (input.startsWith("http://") || input.startsWith("https://")
+              || input.startsWith("www")) {
+            addFeed(input);
+          } else {
+            Log.d("SearchFeedActivity", "gpodder search for " + input);
+            gPodderSearch.search(input, searchCallback);
+          }
         }
+        return true;
       }
     });
     updateAddButtonVisibility();
+
+    eventBus = App.get().getEventBus();
+    eventBus.addListener(NewImageEvent.class, newImageListener);
+  }
+
+  private void addFeed(String url) {
+    addFeedTask = new AddFeedTask(this);
+    addFeedTask.execute(url);
   }
 
   @Override
@@ -64,6 +153,8 @@ public class SearchFeedActivity extends Activity implements
     if (addFeedTask != null) {
       addFeedTask.cancel(true);
     }
+
+    eventBus.removeListener(NewImageEvent.class, newImageListener);
   }
 
   @Override
@@ -97,14 +188,11 @@ public class SearchFeedActivity extends Activity implements
   private void updateAddButtonVisibility() {
     boolean adding = addFeedTask != null;
     addProgress.setVisibility(adding ? View.VISIBLE : View.GONE);
-    addButton.setVisibility(adding ? View.GONE : View.VISIBLE);
   }
 
   @Override
   public void onFeedAdded() {
     addFeedTask = null;
-    addText.setText("");
-    updateAddButtonVisibility();
     finish();
   }
 

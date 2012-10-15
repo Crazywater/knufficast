@@ -89,7 +89,6 @@ public class FeedsFragment extends BaseFragment {
       }
     });
 
-
     eventBus.addListener(NewImageEvent.class, newImageListener);
   }
 

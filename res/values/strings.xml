@@ -6,7 +6,7 @@
     <string name="menu_settings">Settings</string>
     <string name="menu_refresh_feeds">Refresh Feeds</string>
     <string name="add_feed_button">Add</string>
-    <string name="add_feed_hint">Paste a feed URL here</string>
+    <string name="search_feed_hint">Search or enter URL</string>
     <string name="add_feed_failed">Adding the feed failed.</string>
     <string name="title_activity_feed_detail">Feed details</string>
     <string name="title_activity_episode_detail">Episode details</string>

@@ -24,6 +24,7 @@ import java.net.URL;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.util.Pair;
 import de.knufficast.App;
 import de.knufficast.util.BooleanCallback;
@@ -69,8 +70,11 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
       filename = urlAndFilename[1];
       
       // open input
+      Log.d("URL", urlStr);
       URL url = new URL(urlStr);
       
+      HttpURLConnection.setFollowRedirects(true);
+
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
       File file = new ExternalFileUtil(context).resolveFile(filename);
       long initiallyDownloaded = file.length();
@@ -84,10 +88,12 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
       }
       if (!isCancelled()) {
         connection.connect();
+
         if (connection.getResponseCode() == 416) {
           file.delete();
           throw new RuntimeException("Invalid data range, need to redownload");
         }
+
         // check responsecode 2xx
         if (connection.getResponseCode() / 100 != 2) {
           throw new RuntimeException("Weird response code "
