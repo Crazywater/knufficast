@@ -31,8 +31,8 @@ import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.events.PlayerStateChangeEvent;
 import de.knufficast.events.QueueChangedEvent;
 import de.knufficast.logic.db.DBEpisode;
-import de.knufficast.logic.db.Queue;
 import de.knufficast.logic.db.DBEpisode.DownloadState;
+import de.knufficast.logic.db.Queue;
 import de.knufficast.player.PlayerService.PlayerBinder;
 import de.knufficast.util.Callback;
 import de.knufficast.util.Function;
@@ -51,6 +51,7 @@ public class QueuePlayer {
   private final EventBus eventBus;
   private final Context context;
   private PlayerService player;
+  private NotificationAreaController notificationArea;
   private boolean shouldPlay;
   private AudioManager audioManager;
   private final RemoteController remoteController = new RemoteController();
@@ -59,6 +60,7 @@ public class QueuePlayer {
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder binder) {
       player = ((PlayerBinder) binder).getService();
+      notificationArea = new NotificationAreaController(player);
       player.setOnCompletionCallback(onCompletionCallback);
       player.setOnPreparedCallback(onPreparedCallback);
       prepareAsync();
@@ -232,6 +234,7 @@ public class QueuePlayer {
         }
         player.play();
         context.registerReceiver(audioUnpluggedReceiver, audioUnpluggedIntent);
+        notificationArea.register(queue.peek());
         remoteController.updateMetadata(queue.peek(), player.getDuration());
         remoteController.updateState(true);
         eventBus.fireEvent(new PlayerStateChangeEvent(true));
@@ -251,6 +254,7 @@ public class QueuePlayer {
     }
     context.unregisterReceiver(audioUnpluggedReceiver);
     player.pause();
+    notificationArea.unregister();
     remoteController.updateState(false);
     eventBus.fireEvent(new PlayerStateChangeEvent(false));
   }
