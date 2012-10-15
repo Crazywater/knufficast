@@ -24,7 +24,6 @@ import java.net.URL;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.util.Pair;
 import de.knufficast.App;
 import de.knufficast.util.BooleanCallback;
@@ -70,7 +69,6 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
       filename = urlAndFilename[1];
       
       // open input
-      Log.d("URL", urlStr);
       URL url = new URL(urlStr);
       
       HttpURLConnection.setFollowRedirects(true);
