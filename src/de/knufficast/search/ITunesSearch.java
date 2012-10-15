@@ -28,6 +28,12 @@ import org.json.JSONObject;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.HttpUtil;
 
+/**
+ * Searches the iTunes database for podcasts.
+ * 
+ * @author crazywater
+ * 
+ */
 public class ITunesSearch implements PodcastSearch {
   private static final String SEARCH_URL = "http://itunes.apple.com/search?media=podcast&entity=podcast&term=%s";
   private static final String ERROR_CONNECTION = "No connection";

@@ -19,7 +19,19 @@ import java.util.List;
 
 import de.knufficast.util.BooleanCallback;
 
+/**
+ * An interface for podcast searches.
+ * 
+ * @author crazywater
+ * 
+ */
 public interface PodcastSearch {
+  /**
+   * A result of a podcast search.
+   * 
+   * @author crazywater
+   * 
+   */
   public interface Result {
     public String getTitle();
     public String getDescription();
@@ -28,6 +40,9 @@ public interface PodcastSearch {
     public String getWebsite();
   };
 
+  /**
+   * Execute a search for podcasts.
+   */
   public void search(final String query,
       final BooleanCallback<List<Result>, String> callback);
 }

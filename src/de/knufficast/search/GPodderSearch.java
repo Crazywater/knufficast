@@ -28,6 +28,12 @@ import org.json.JSONObject;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.HttpUtil;
 
+/**
+ * Searches GPodder for podcasts.
+ * 
+ * @author crazywater
+ * 
+ */
 public class GPodderSearch implements PodcastSearch {
   private static final String SEARCH_URL = "http://gpodder.net/search.json?q=%s";
   private static final String ERROR_CONNECTION = "No connection";
