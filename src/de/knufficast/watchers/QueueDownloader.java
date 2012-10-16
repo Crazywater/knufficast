@@ -18,6 +18,10 @@ package de.knufficast.watchers;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.util.Log;
@@ -46,6 +50,11 @@ public class QueueDownloader {
   private static QueueDownloader instance;
 
   private Map<DBEpisode, DownloadTask> downloadTasks = new HashMap<DBEpisode, DownloadTask>();
+
+  private static final int MAX_DOWNLOAD_THREADS = 2;
+  private final BlockingQueue<Runnable> downloadTaskQueue = new LinkedBlockingQueue<Runnable>();
+  private final ThreadPoolExecutor downloadExecutor = new ThreadPoolExecutor(1,
+      MAX_DOWNLOAD_THREADS, 1, TimeUnit.SECONDS, downloadTaskQueue);
 
   private QueueDownloader(Context context) {
     this.context = context;
@@ -88,7 +97,8 @@ public class QueueDownloader {
           };
           DownloadTask task = new DownloadTask(context, progressCallback, finishedCallback);
           downloadTasks.put(episode, task);
-          task.execute(url, episode.getFileLocation());
+          task.executeOnExecutor(downloadExecutor, url,
+              episode.getFileLocation());
         }
       }
     }
