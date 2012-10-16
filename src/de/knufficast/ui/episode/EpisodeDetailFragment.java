@@ -35,11 +35,11 @@ import de.knufficast.events.FlattrStateEvent;
 import de.knufficast.events.Listener;
 import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.logic.db.DBEpisode;
-import de.knufficast.logic.db.DBFeed;
-import de.knufficast.logic.db.Queue;
 import de.knufficast.logic.db.DBEpisode.DownloadState;
 import de.knufficast.logic.db.DBEpisode.FlattrState;
 import de.knufficast.logic.db.DBEpisode.PlayState;
+import de.knufficast.logic.db.DBFeed;
+import de.knufficast.logic.db.Queue;
 import de.knufficast.ui.BaseFragment;
 import de.knufficast.util.TimeUtil;
 
@@ -242,7 +242,7 @@ public class EpisodeDetailFragment extends BaseFragment {
       } else if (episode.getFlattrState() == FlattrState.ENQUEUED) {
         text = getString(R.string.flattring_state_enqueued);
         progress = 50;
-      } else if (episode.getFlattrState() == FlattrState.FLATTRED) {
+      } else if (episode.getFlattrState() == FlattrState.ERROR) {
         text = getString(R.string.flattring_state_error);
         progress = 100;
       } else if (episode.getFlattrState() == FlattrState.FLATTRED) {
