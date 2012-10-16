@@ -43,13 +43,18 @@ public class XMLToDBWriter {
   public void addFeeds(List<XMLFeed> xmlFeeds) {
     postProcessor.process(xmlFeeds);
     for (XMLFeed xmlFeed : xmlFeeds) {
-      DBFeed feed = createFeed(xmlFeed);
-      // reverse the episodes, so we insert the oldest first
-      List<XMLEpisode> episodes = xmlFeed.getEpisodes();
-      Collections.reverse(episodes);
-      for (XMLEpisode tempEpisode : episodes) {
-        DBEpisode ep = createEpisode(feed, tempEpisode);
-        ep.setNew(false);
+      // check if this feed already exists
+      List<Long> ids = db.query(SQLiteHelper.TABLE_FEEDS,
+          SQLiteHelper.C_FD_FEED_URL, xmlFeed.getDataUrl());
+      if (ids.isEmpty()) {
+        DBFeed feed = createFeed(xmlFeed);
+        // reverse the episodes, so we insert the oldest first
+        List<XMLEpisode> episodes = xmlFeed.getEpisodes();
+        Collections.reverse(episodes);
+        for (XMLEpisode tempEpisode : episodes) {
+          DBEpisode ep = createEpisode(feed, tempEpisode);
+          ep.setNew(false);
+        }
       }
     }
   }

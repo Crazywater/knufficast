@@ -82,7 +82,7 @@ public class QueueDownloader {
               episode.setDownloadProgress(progress.first, progress.second);
             }
           };
-          BooleanCallback<Void, Void> finishedCallback = new BooleanCallback<Void, Void>() {
+          BooleanCallback<Void, String> finishedCallback = new BooleanCallback<Void, String>() {
             @Override
             public void success(Void unused) {
               episode.setDownloadState(DownloadState.FINISHED);
@@ -90,7 +90,7 @@ public class QueueDownloader {
             }
 
             @Override
-            public void fail(Void unused) {
+            public void fail(String error) {
               episode.setDownloadState(DownloadState.ERROR);
               downloadTasks.remove(episode);
             }
@@ -102,16 +102,6 @@ public class QueueDownloader {
         }
       }
     }
-  }
-
-  public void pauseAllDownloads() {
-    for (Map.Entry<DBEpisode, DownloadTask> entry : downloadTasks.entrySet()) {
-      DBEpisode episode = entry.getKey();
-      DownloadTask downloadTask = entry.getValue();
-      episode.setDownloadState(DownloadState.PAUSED);
-      downloadTask.cancel(true);
-    }
-    downloadTasks.clear();
   }
 
   public void deleteDownload(DBEpisode episode) {

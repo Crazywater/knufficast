@@ -16,12 +16,10 @@
 package de.knufficast.watchers;
 
 import de.knufficast.App;
-import de.knufficast.events.EpisodeDownloadStateEvent;
 import de.knufficast.events.Event;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
 import de.knufficast.events.NewEpisodeEvent;
-import de.knufficast.events.NewImageEvent;
 import de.knufficast.events.QueueChangedEvent;
 
 /**
@@ -56,15 +54,11 @@ public class ConfigurationSaver {
   
   public void register() {
     eventBus.addListener(NewEpisodeEvent.class, saver);
-    eventBus.addListener(EpisodeDownloadStateEvent.class, saver);
     eventBus.addListener(QueueChangedEvent.class, saver);
-    eventBus.addListener(NewImageEvent.class, saver);
   }
 
   public void unregister() {
     eventBus.removeListener(NewEpisodeEvent.class, saver);
-    eventBus.removeListener(EpisodeDownloadStateEvent.class, saver);
     eventBus.removeListener(QueueChangedEvent.class, saver);
-    eventBus.removeListener(NewImageEvent.class, saver);
   }
 }

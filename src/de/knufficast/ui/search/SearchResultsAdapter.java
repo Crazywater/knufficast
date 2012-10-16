@@ -72,7 +72,7 @@ public class SearchResultsAdapter extends ArrayAdapter<Result> {
 
     ImageView icon = (ImageView) row.findViewById(R.id.search_result_list_icon);
     icon.setImageDrawable(App.get().getImageCache()
-        .getTempResource(result.getImgUrl()));
+        .getResource(result.getImgUrl()));
 
     return row;
   }

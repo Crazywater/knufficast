@@ -28,6 +28,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 /**
  * A connection to the Android-internal SQLite3 database. Caches writes so that
@@ -119,8 +120,14 @@ public class Database {
       String result = cache.get(key);
       return result;
     }
-    Cursor cursor = database.query(table, col, SQLiteHelper.C_ID + " = "
-        + id, null, null, null, null);
+    Cursor cursor = database.query(table, col, SQLiteHelper.C_ID + " = " + id,
+        null, null, null, null);
+    if (cursor.getCount() != 1) {
+      Log.e("Database", "Weird number of results: Table " + table + ", id "
+          + id
+          + ", column " + column + ": results: " + cursor.getCount());
+      return "";
+    }
     cursor.moveToFirst();
     String result = cursor.getString(0);
     cursor.close();

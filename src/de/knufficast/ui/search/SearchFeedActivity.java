@@ -28,7 +28,6 @@ import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -85,7 +84,6 @@ public class SearchFeedActivity extends Activity implements
   private final BooleanCallback<List<Result>, String> searchCallback = new BooleanCallback<List<Result>, String>() {
     @Override
     public void success(List<Result> a) {
-      Log.d("SearchFeedActivity", "Search success callback: " + a.size());
       searchResults.clear();
       searchResults.addAll(a);
       runOnUiThread(new Runnable() {
@@ -99,7 +97,6 @@ public class SearchFeedActivity extends Activity implements
 
     @Override
     public void fail(String error) {
-      Log.d("SearchFeedActivity", "Search error callback: " + error);
       searchResults.clear();
       runOnUiThread(new Runnable() {
         @Override
@@ -151,7 +148,6 @@ public class SearchFeedActivity extends Activity implements
             addFeed(input);
           } else {
             searchProgress.setVisibility(View.VISIBLE);
-            Log.d("SearchFeedActivity", "gpodder search for " + input);
             podcastSearch.search(input, searchCallback);
           }
         }
@@ -176,12 +172,6 @@ public class SearchFeedActivity extends Activity implements
     }
 
     eventBus.removeListener(NewImageEvent.class, newImageListener);
-  }
-
-  @Override
-  public void onDestroy() {
-    super.onDestroy();
-    App.get().getImageCache().freeTempResources();
   }
 
   @Override

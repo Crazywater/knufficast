@@ -35,6 +35,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import de.knufficast.App;
 import de.knufficast.R;
+import de.knufficast.events.EventBus;
+import de.knufficast.events.Listener;
+import de.knufficast.events.NewImageEvent;
 import de.knufficast.logic.db.DBEpisode;
 import de.knufficast.logic.db.DBFeed;
 import de.knufficast.ui.episode.EpisodeDetailActivity;
@@ -50,9 +53,19 @@ import de.knufficast.ui.settings.SettingsActivity;
  */
 public class FeedDetailActivity extends Activity {
   public static final String FEED_ID_INTENT = "feedIdIntent";
+  
+  private EpisodesAdapter episodesAdapter;
+
+  private final Listener<NewImageEvent> newImageListener = new Listener<NewImageEvent>() {
+    @Override
+    public void onEvent(NewImageEvent event) {
+      episodesAdapter.notifyDataSetChanged();
+    }
+  };
 
   private boolean descriptionVisible = false;
   private DBFeed feed;
+  private EventBus eventBus;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -76,6 +89,14 @@ public class FeedDetailActivity extends Activity {
     long feedId = getIntent().getExtras().getLong(FEED_ID_INTENT);
     DBFeed feed = new DBFeed(feedId);
     setFeed(feed);
+    eventBus = App.get().getEventBus();
+    eventBus.addListener(NewImageEvent.class, newImageListener);
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    eventBus.removeListener(NewImageEvent.class, newImageListener);
   }
 
   @Override
@@ -131,8 +152,9 @@ public class FeedDetailActivity extends Activity {
         .getResource(feed.getImgUrl()));
     ListView episodeList = (ListView) findViewById(R.id.feed_episode_list);
     final List<DBEpisode> episodes = feed.getEpisodes();
-    episodeList.setAdapter(new EpisodesAdapter(this,
-        R.layout.episode_list_item, episodes));
+    episodesAdapter = new EpisodesAdapter(this,
+        R.layout.episode_list_item, episodes);
+    episodeList.setAdapter(episodesAdapter);
     episodeList.setOnItemClickListener(new OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> arg0, View arg1, int position,

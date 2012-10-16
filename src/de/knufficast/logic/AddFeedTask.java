@@ -27,7 +27,6 @@ import android.util.Log;
 import de.knufficast.logic.db.Configuration;
 import de.knufficast.logic.db.XMLToDBWriter;
 import de.knufficast.logic.xml.XMLFeed;
-import de.knufficast.watchers.QueueDownloader;
 
 /**
  * A background task that downloads RSS feeds, parses them and adds them to the
@@ -50,8 +49,6 @@ public class AddFeedTask extends AsyncTask<String, Void, Void> {
 
   @Override
   protected Void doInBackground(String... urls) {
-    QueueDownloader queueDownloader = QueueDownloader.get();
-    queueDownloader.pauseAllDownloads();
     int count = urls.length;
     for (int i = 0; i < count; i++) {
       Log.d("AddFeedTask", "Fetching Feed url " + urls[i]);
@@ -80,7 +77,6 @@ public class AddFeedTask extends AsyncTask<String, Void, Void> {
         error = e.getMessage();
       }
     }
-    queueDownloader.restartDownloads();
     return null;
   }
 
@@ -89,8 +85,9 @@ public class AddFeedTask extends AsyncTask<String, Void, Void> {
     if (error == null) {
       presenter.onFeedAdded();
     } else {
-      if (presenter != null)
+      if (presenter != null) {
         presenter.onFeedAddError(error);
+      }
     }
   }
 

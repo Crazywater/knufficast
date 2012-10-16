@@ -75,7 +75,6 @@ public class UpdaterService extends IntentService {
       List<DBFeed> allFeeds = config.getAllFeeds();
       boolean refreshSuccessful = true;
       // refresh feeds
-      QueueDownloader.get().pauseAllDownloads();
       for (DBFeed feed : allFeeds) {
         Log.d("UpdaterService", "Refreshing Feed " + feed.getFeedUrl());
         try {

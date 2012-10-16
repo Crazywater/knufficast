@@ -52,7 +52,7 @@ public class FeedsFragment extends BaseFragment {
   private Listener<NewImageEvent> newImageListener = new Listener<NewImageEvent>() {
     @Override
     public void onEvent(NewImageEvent event) {
-      refreshFeeds();
+      feedsAdapter.notifyDataSetChanged();
     }
   };
 
@@ -71,7 +71,6 @@ public class FeedsFragment extends BaseFragment {
     super.onCreate(savedInstanceState);
     feedsAdapter = new FeedsAdapter(getContext(), R.layout.feed_list_item,
         feeds);
-
     eventBus = App.get().getEventBus();
   }
 

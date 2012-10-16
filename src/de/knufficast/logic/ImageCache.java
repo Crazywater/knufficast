@@ -15,7 +15,6 @@
  ******************************************************************************/
 package de.knufficast.logic;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -36,12 +35,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import de.knufficast.R;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.NewImageEvent;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.NetUtil;
-import de.knufficast.util.file.ExternalFileUtil;
 import de.knufficast.util.file.FileUtil;
 import de.knufficast.util.file.InternalFileUtil;
 
@@ -53,11 +52,12 @@ import de.knufficast.util.file.InternalFileUtil;
 public class ImageCache {
   private static final String IMAGECACHE_FILENAME = "imageCache-index";
   private static final int MAX_DOWNLOAD_THREADS = 5;
+  private static final int MAX_RETRIES = 3;
 
   private final Map<String, String> urlToFile = new HashMap<String, String>();
   private final Map<String, BitmapDrawable> imageMap = new HashMap<String, BitmapDrawable>();
 
-  private final Set<String> tempUrls = new HashSet<String>();
+  private final Set<String> downloadingUrls = new HashSet<String>();
 
   private final BlockingQueue<Runnable> downloadTaskQueue = new LinkedBlockingQueue<Runnable>();
   private final ThreadPoolExecutor downloadExecutor = new ThreadPoolExecutor(1,
@@ -67,13 +67,15 @@ public class ImageCache {
   private final EventBus eventBus;
   private final NetUtil netUtil;
   private final FileUtil fileUtil;
+  private final FileUtil configFileUtil;
   private BitmapDrawable defaultIcon;
 
-  public ImageCache(Context context, EventBus eventBus) {
+  public ImageCache(Context context, EventBus eventBus, FileUtil fileUtil) {
     this.context = context;
     this.eventBus = eventBus;
     this.netUtil = new NetUtil(context);
-    fileUtil = new ExternalFileUtil(context);
+    this.fileUtil = fileUtil;
+    this.configFileUtil = new InternalFileUtil(context);
   }
 
   /**
@@ -81,26 +83,50 @@ public class ImageCache {
    * fire a {@link NewImageEvent} later.
    */
   public BitmapDrawable getResource(final String url) {
+    return doGetResource(url, 0);
+  }
+
+  private BitmapDrawable doGetResource(final String url, final int retryDepth) {
+    if (retryDepth > MAX_RETRIES) {
+      downloadingUrls.remove(url);
+      return getDefaultIcon();
+    }
     if (url == null || "".equals(url)) {
       return getDefaultIcon();
     }
     if (urlToFile.containsKey(url)) {
       if (!imageMap.containsKey(url)) {
-        insertDrawable(url);
+        if (!insertDrawable(url)) {
+          doGetResource(url, retryDepth + 1);
+        }
       }
-      return imageMap.get(url);
+      // try again
+      if (imageMap.containsKey(url)) {
+        return imageMap.get(url);
+      }
     }
-    if (netUtil.isOnWifi()) {
+    if (netUtil.isOnWifi() && !downloadingUrls.contains(url)) {
+      downloadingUrls.add(url);
       final String filename = "imageCache-file-" + url.hashCode();
-      DownloadTask task = new DownloadTask(context, null,
-          new BooleanCallback<Void, Void>() {
+      FileUtil util = fileUtil;
+      DownloadTask task = new DownloadTask(util, null,
+          new BooleanCallback<Void, String>() {
             @Override
             public void success(Void unused) {
+              downloadingUrls.remove(url);
               notifyNewImage(url, filename);
+              save();
             }
 
             @Override
-            public void fail(Void unused) {
+            public void fail(String error) {
+              if (error == DownloadTask.ERROR_DATA_RANGE) {
+                // only retry if we got "Invalid data range" for now...
+                doGetResource(url, retryDepth + 1);
+              } else {
+                Log.d("ImageCache", "Download error is " + error);
+                downloadingUrls.remove(url);
+              }
             }
           });
       task.executeOnExecutor(downloadExecutor, url, filename);
@@ -109,49 +135,26 @@ public class ImageCache {
   }
 
   /**
-   * Get a {@link Drawable} from a URL, temporarily. The temporarily received
-   * resources can then be freed using {@link #freeTempResources}. This is used
-   * for temporary images, as in search results.
-   */
-  public BitmapDrawable getTempResource(final String url) {
-    tempUrls.add(url);
-    return getResource(url);
-  }
-
-  /**
-   * Removes all images that have been added by {@link #getTempResource} from
-   * the cache.
-   */
-  public void freeTempResources() {
-    downloadTaskQueue.clear();
-    for (String url : tempUrls) {
-      if (urlToFile.containsKey(url)) {
-        File file = fileUtil.resolveFile(urlToFile.get(url));
-        file.delete();
-        urlToFile.remove(url);
-      }
-      imageMap.remove(url);
-    }
-    tempUrls.clear();
-  }
-
-  /**
    * Insert a newly found image into the map and notify listeners.
    */
   private void notifyNewImage(String url, String filename) {
     urlToFile.put(url, filename);
+    Log.d("ImageCache", "Firing event for " + url);
     eventBus.fireEvent(new NewImageEvent(url));
   }
 
-  private void insertDrawable(String url) {
+  private boolean insertDrawable(String url) {
     try {
       Bitmap bitmap = BitmapFactory.decodeStream(fileUtil.read(urlToFile
           .get(url)));
       BitmapDrawable drawable = new BitmapDrawable(context.getResources(),
           bitmap);
       imageMap.put(url, drawable);
+      Log.d("ImageCache", "Successfully inserted drawable for " + url);
+      return true;
     } catch (FileNotFoundException e) {
-      imageMap.put(url, getDefaultIcon());
+      urlToFile.remove(url);
+      return false;
     }
   }
 
@@ -167,7 +170,7 @@ public class ImageCache {
   public void save() {
     FileOutputStream fos;
     try {
-      fos = new InternalFileUtil(context).write(IMAGECACHE_FILENAME, false);
+      fos = configFileUtil.write(IMAGECACHE_FILENAME, false);
       ObjectOutputStream os = new ObjectOutputStream(fos);
       os.writeObject(urlToFile);
       os.close();
@@ -179,7 +182,7 @@ public class ImageCache {
   @SuppressWarnings("unchecked")
   public void load() {
     try {
-      FileInputStream fis = new InternalFileUtil(context)
+      FileInputStream fis = configFileUtil
           .read(IMAGECACHE_FILENAME);
       ObjectInputStream is = new ObjectInputStream(fis);
       setImages((Map<String, String>) is.readObject());

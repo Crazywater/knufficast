@@ -30,6 +30,7 @@ import de.knufficast.logic.db.Queue;
 import de.knufficast.logic.db.SQLiteHelper;
 import de.knufficast.player.QueuePlayer;
 import de.knufficast.util.LockManager;
+import de.knufficast.util.file.CacheFileUtil;
 import de.knufficast.watchers.ConfigurationSaver;
 import de.knufficast.watchers.DownloadRemover;
 import de.knufficast.watchers.DownloadWatcher;
@@ -47,7 +48,8 @@ public class App extends Application {
   private final Queue queue = new Queue();
   private final LockManager lockManager = new LockManager(this);
   private final EventBus eventBus = new EventBus();
-  private final ImageCache imageCache = new ImageCache(this, eventBus);
+  private final ImageCache imageCache = new ImageCache(this, eventBus,
+      new CacheFileUtil(this));
   private final ConfigurationSaver configurationSaver = new ConfigurationSaver(
       eventBus);
   private final DownloadWatcher downloadWatcher = new DownloadWatcher(this,
@@ -166,7 +168,6 @@ public class App extends Application {
   }
 
   public void deleteFeed(DBFeed feed) {
-    // TODO: delete cached icons
     QueueDownloader queueDownloader = QueueDownloader.get();
     for (DBEpisode ep : feed.getEpisodes()) {
       if (queue.contains(ep)) {

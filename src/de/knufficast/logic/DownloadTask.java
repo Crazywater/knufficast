@@ -18,6 +18,7 @@ package de.knufficast.logic;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -29,6 +30,7 @@ import de.knufficast.App;
 import de.knufficast.util.BooleanCallback;
 import de.knufficast.util.Callback;
 import de.knufficast.util.file.ExternalFileUtil;
+import de.knufficast.util.file.FileUtil;
 
 /**
  * An {@link AsyncTask} that downloads files to external storage and can report
@@ -39,27 +41,42 @@ import de.knufficast.util.file.ExternalFileUtil;
  * @author crazywater
  * 
  */
-public class DownloadTask extends AsyncTask<String, Long, Boolean> {
-  private final Context context;
+public class DownloadTask extends AsyncTask<String, Long, String> {
   private final Callback<Pair<Long, Long>> progressCallback;
-  private final BooleanCallback<Void, Void> finishedCallback;
+  private final BooleanCallback<Void, String> finishedCallback;
+  private final FileUtil fileUtil;
   private String urlStr;
   private String filename;
   private long lastPublishTimestamp;
+
+  public static final String SUCCESS = "Success";
+  public static final String ERROR_DATA_RANGE = "Invalid data range";
+  public static final String ERROR_RESPONSE_CODE = "Invalid response code";
+  public static final String ERROR_CONTENT_LENGTH = "Invalid content length";
+  public static final String ERROR_CONNECTION = "Connection error";
+  public static final String ERROR_OTHER = "Unknown error";
 
   // How often progress is reported to the callback
   private static final long PUBLISH_INTERVAL = 250; // ms
 
   public DownloadTask(Context context,
       Callback<Pair<Long, Long>> progressCallback,
-      BooleanCallback<Void, Void> finishedCallback) {
-    this.context = context;
+      BooleanCallback<Void, String> finishedCallback) {
     this.progressCallback = progressCallback;
     this.finishedCallback = finishedCallback;
+    fileUtil = new ExternalFileUtil(context);
+  }
+
+  public DownloadTask(FileUtil fileUtil,
+      Callback<Pair<Long, Long>> progressCallback,
+      BooleanCallback<Void, String> finishedCallback) {
+    this.progressCallback = progressCallback;
+    this.finishedCallback = finishedCallback;
+    this.fileUtil = fileUtil;
   }
 
   @Override
-  protected Boolean doInBackground(String... urlAndFilename) {
+  protected String doInBackground(String... urlAndFilename) {
     App.get().getLockManager().lockWifi(urlAndFilename);
     try {
       if (urlAndFilename.length != 2) {
@@ -74,7 +91,7 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
       HttpURLConnection.setFollowRedirects(true);
 
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-      File file = new ExternalFileUtil(context).resolveFile(filename);
+      File file = fileUtil.resolveFile(filename);
       long initiallyDownloaded = file.length();
 
       boolean append = initiallyDownloaded > 0;
@@ -98,13 +115,12 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
         }
         if (connection.getResponseCode() == 416) {
           file.delete();
-          throw new RuntimeException("Invalid data range, need to redownload");
+          throw new RuntimeException(ERROR_DATA_RANGE);
         }
 
         // check responsecode 2xx
         if (connection.getResponseCode() / 100 != 2) {
-          throw new RuntimeException("Weird response code "
-              + connection.getResponseCode());
+          throw new RuntimeException(ERROR_RESPONSE_CODE);
         }
         if (!"bytes".equals(connection.getHeaderField("Accept-Ranges"))) {
           append = false;
@@ -119,8 +135,7 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
         // check content length
         int contentLength = connection.getContentLength();
         if (!(contentLength > 0)) {
-          throw new RuntimeException("Weird content length "
-              + connection.getContentLength());
+          throw new RuntimeException(ERROR_CONTENT_LENGTH);
         }
   
         byte data[] = new byte[1024];
@@ -138,11 +153,11 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
         output.close();
         input.close();
       }
-
-      return true;
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
+      return SUCCESS;
+    } catch (IOException e) {
+      return ERROR_CONNECTION;
+    } catch (RuntimeException e) {
+      return e.getMessage();
     } finally {
       App.get().getLockManager().unlockWifi(urlAndFilename);
     }
@@ -168,12 +183,12 @@ public class DownloadTask extends AsyncTask<String, Long, Boolean> {
   }
 
   @Override
-  protected void onPostExecute(Boolean result) {
+  protected void onPostExecute(String result) {
     if (finishedCallback != null) {
-      if (result) {
+      if (result == SUCCESS) {
         finishedCallback.success(null);
       } else {
-        finishedCallback.fail(null);
+        finishedCallback.fail(result);
       }
     }
   }
