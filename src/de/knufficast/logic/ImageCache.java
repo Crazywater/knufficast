@@ -150,7 +150,6 @@ public class ImageCache {
       BitmapDrawable drawable = new BitmapDrawable(context.getResources(),
           bitmap);
       imageMap.put(url, drawable);
-      Log.d("ImageCache", "Successfully inserted drawable for " + url);
       return true;
     } catch (FileNotFoundException e) {
       urlToFile.remove(url);
