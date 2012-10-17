@@ -14,6 +14,7 @@
 
         <ImageView
             android:id="@+id/episode_icon"
+            android:contentDescription="@string/description_episode_icon"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:scaleType="fitCenter"

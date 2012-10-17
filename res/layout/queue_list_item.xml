@@ -8,6 +8,7 @@
 
     <ImageView
         android:id="@+id/queue_episode_list_icon"
+        android:contentDescription="@string/description_episode_icon"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:adjustViewBounds="true"

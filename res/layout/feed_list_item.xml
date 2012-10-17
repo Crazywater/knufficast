@@ -8,6 +8,7 @@
 
     <ImageView
         android:id="@+id/feed_list_icon"
+        android:contentDescription="@string/description_feed_icon"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:scaleType="fitCenter"
