@@ -189,13 +189,15 @@ public class QueuePlayer {
           player.setEpisode(next);
         } else {
           player.setEpisode(null);
-          shouldPlay = false;
+          stopped();
         }
         if (player.isPrepared()) {
           progress = player.getCurrentPosition();
           total = player.getDuration();
           next.setDuration(total);
         }
+      } else {
+        stopped();
       }
       eventBus
           .fireEvent(new PlayerProgressEvent(queue.peek(), progress, total));
@@ -204,6 +206,13 @@ public class QueuePlayer {
       audioManager = (AudioManager) context
           .getSystemService(Context.AUDIO_SERVICE);
     }
+  }
+
+  private void stopped() {
+    shouldPlay = false;
+    remoteController.stop();
+    remoteController.release();
+    audioManager.abandonAudioFocus(onAudioFocusChangeListener);
   }
 
   /**
@@ -239,8 +248,8 @@ public class QueuePlayer {
         remoteController.updateState(true);
         eventBus.fireEvent(new PlayerStateChangeEvent(true));
       }
-    } else if (queue.isEmpty()) {
-      remoteController.stop();
+    } else {
+      stopped();
     }
   }
 

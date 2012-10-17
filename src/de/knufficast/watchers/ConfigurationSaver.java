@@ -30,21 +30,11 @@ import de.knufficast.events.QueueChangedEvent;
  */
 public class ConfigurationSaver {
   private EventBus eventBus;
-  private boolean saving;
-  private Thread saverThread = new Thread() {
-    @Override
-    public void run() {
-      App.get().save();
-    }
-  };
 
   private Listener<Event> saver = new Listener<Event>() {
     @Override
     public void onEvent(Event event) {
-      if (!saving) {
-        saving = true;
-        saverThread.start();
-      }
+      App.get().save();
     }
   };
 
