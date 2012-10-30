@@ -47,6 +47,9 @@ public class CacheFileUtil implements FileUtil {
   }
 
   public FileInputStream read(String filename) throws FileNotFoundException {
+    if (filename == null || "".equals(filename)) {
+      throw new FileNotFoundException();
+    }
     File file = resolveFile(filename);
     if (!file.exists()) {
       throw new FileNotFoundException();

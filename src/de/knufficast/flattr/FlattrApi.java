@@ -74,12 +74,10 @@ public class FlattrApi {
       } else {
         config.resetAuthentication();
       }
-      App.get().save();
     } catch (IOException e) {
       e.printStackTrace();
     } catch (JSONException e) {
       config.resetAuthentication();
-      App.get().save();
     }
   }
 

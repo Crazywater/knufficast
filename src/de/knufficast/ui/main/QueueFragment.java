@@ -33,6 +33,7 @@ import de.knufficast.events.EpisodeDownloadProgressEvent;
 import de.knufficast.events.EpisodeDownloadStateEvent;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.Listener;
+import de.knufficast.events.NewImageEvent;
 import de.knufficast.events.PlayerProgressEvent;
 import de.knufficast.events.PlayerStateChangeEvent;
 import de.knufficast.events.QueueChangedEvent;
@@ -68,7 +69,7 @@ public class QueueFragment extends BaseFragment implements
   private final Listener<QueueChangedEvent> queueUpdateListener = new Listener<QueueChangedEvent>() {
     @Override
     public void onEvent(QueueChangedEvent event) {
-      redrawQueue();
+      updateQueue();
     }
   };
   private final Listener<PlayerStateChangeEvent> playerStateListener = new Listener<PlayerStateChangeEvent>() {
@@ -106,6 +107,17 @@ public class QueueFragment extends BaseFragment implements
           }
         }
       }
+    }
+  };
+  private final Listener<NewImageEvent> newImageListener = new Listener<NewImageEvent>() {
+    @Override
+    public void onEvent(NewImageEvent event) {
+      getActivity().runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          episodesAdapter.notifyDataSetChanged();
+        }
+      });
     }
   };
 
@@ -177,6 +189,7 @@ public class QueueFragment extends BaseFragment implements
         episodeDownloadStateListener);
     eventBus.addListener(EpisodeDownloadProgressEvent.class,
         episodeDownloadProgressListener);
+    eventBus.addListener(NewImageEvent.class, newImageListener);
 
     // add listeners to user events
     playButton.setOnClickListener(new OnClickListener() {
@@ -236,9 +249,6 @@ public class QueueFragment extends BaseFragment implements
   }
 
   private void redrawQueue() {
-    Queue queue = App.get().getQueue();
-    ourQueue.clear();
-    ourQueue.addAll(queue.asList());
     getActivity().runOnUiThread(new Runnable() {
       @Override
       public void run() {
@@ -257,6 +267,7 @@ public class QueueFragment extends BaseFragment implements
         episodeDownloadStateListener);
     eventBus.removeListener(EpisodeDownloadProgressEvent.class,
         episodeDownloadProgressListener);
+    eventBus.removeListener(NewImageEvent.class, newImageListener);
   }
 
   /**
@@ -266,7 +277,7 @@ public class QueueFragment extends BaseFragment implements
     Queue queue = App.get().getQueue();
     ourQueue.clear();
     ourQueue.addAll(queue.asList());
-    episodesAdapter.notifyDataSetChanged();
+    redrawQueue();
   }
 
   /**

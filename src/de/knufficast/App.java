@@ -159,12 +159,10 @@ public class App extends Application {
   }
 
   /**
-   * Loads the entire application state. Invalidates all references to the
-   * configuration object and therefore should be called with care.
+   * Loads the entire application state.
    */
   private synchronized void load() {
     loadQueue();
-    imageCache.load();
   }
 
   public void deleteFeed(DBFeed feed) {

@@ -15,6 +15,7 @@
  ******************************************************************************/
 package de.knufficast.logic;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -35,7 +36,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
+import android.os.AsyncTask;
 import de.knufficast.R;
 import de.knufficast.events.EventBus;
 import de.knufficast.events.NewImageEvent;
@@ -52,12 +53,13 @@ import de.knufficast.util.file.InternalFileUtil;
 public class ImageCache {
   private static final String IMAGECACHE_FILENAME = "imageCache-index";
   private static final int MAX_DOWNLOAD_THREADS = 5;
-  private static final int MAX_RETRIES = 3;
+  private static final int IMAGE_SIZE = 200;
 
   private final Map<String, String> urlToFile = new HashMap<String, String>();
   private final Map<String, BitmapDrawable> imageMap = new HashMap<String, BitmapDrawable>();
 
-  private final Set<String> downloadingUrls = new HashSet<String>();
+  private final Set<String> processingUrls = new HashSet<String>();
+  private final Set<String> blockedUrls = new HashSet<String>();
 
   private final BlockingQueue<Runnable> downloadTaskQueue = new LinkedBlockingQueue<Runnable>();
   private final ThreadPoolExecutor downloadExecutor = new ThreadPoolExecutor(1,
@@ -83,50 +85,40 @@ public class ImageCache {
    * fire a {@link NewImageEvent} later.
    */
   public BitmapDrawable getResource(final String url) {
-    return doGetResource(url, 0);
-  }
-
-  private BitmapDrawable doGetResource(final String url, final int retryDepth) {
-    if (retryDepth > MAX_RETRIES) {
-      downloadingUrls.remove(url);
-      return getDefaultIcon();
-    }
-    if (url == null || "".equals(url)) {
+    if (url == null || "".equals(url) || blockedUrls.contains(url)
+        || processingUrls.contains(url)) {
       return getDefaultIcon();
     }
     if (urlToFile.containsKey(url)) {
-      if (!imageMap.containsKey(url)) {
-        if (!insertDrawable(url)) {
-          doGetResource(url, retryDepth + 1);
-        }
-      }
-      // try again
-      if (imageMap.containsKey(url)) {
+      if (imageMap.get(url) == null) {
+        insertDrawable(url);
+        return getDefaultIcon();
+      } else {
         return imageMap.get(url);
       }
     }
-    if (netUtil.isOnWifi() && !downloadingUrls.contains(url)) {
-      downloadingUrls.add(url);
+    if (netUtil.isOnWifi()) {
+      processingUrls.add(url);
       final String filename = "imageCache-file-" + url.hashCode();
       FileUtil util = fileUtil;
       DownloadTask task = new DownloadTask(util, null,
           new BooleanCallback<Void, String>() {
             @Override
             public void success(Void unused) {
-              downloadingUrls.remove(url);
-              notifyNewImage(url, filename);
+              urlToFile.put(url, filename);
               save();
+              insertDrawable(url);
             }
 
             @Override
             public void fail(String error) {
-              if (error == DownloadTask.ERROR_DATA_RANGE) {
-                // only retry if we got "Invalid data range" for now...
-                doGetResource(url, retryDepth + 1);
+              if (error != DownloadTask.ERROR_CONNECTION
+                  && error != DownloadTask.ERROR_DATA_RANGE) {
+                blockedUrls.add(url);
               } else {
-                Log.d("ImageCache", "Download error is " + error);
-                downloadingUrls.remove(url);
+                eventBus.fireEvent(new NewImageEvent(url));
               }
+              processingUrls.remove(url);
             }
           });
       task.executeOnExecutor(downloadExecutor, url, filename);
@@ -134,27 +126,57 @@ public class ImageCache {
     return getDefaultIcon();
   }
 
-  /**
-   * Insert a newly found image into the map and notify listeners.
-   */
-  private void notifyNewImage(String url, String filename) {
-    urlToFile.put(url, filename);
-    Log.d("ImageCache", "Firing event for " + url);
-    eventBus.fireEvent(new NewImageEvent(url));
-  }
+  private void insertDrawable(final String url) {
+    processingUrls.add(url);
+    new AsyncTask<Void, Void, Boolean>() {
+      @Override
+      protected Boolean doInBackground(Void... params) {
+        try {
+          // get the header information only
+          FileInputStream fStream = fileUtil.read(urlToFile.get(url));
+          BitmapFactory.Options o = new BitmapFactory.Options();
+          o.inJustDecodeBounds = true;
+          BitmapFactory.decodeStream(fStream, null, o);
 
-  private boolean insertDrawable(String url) {
-    try {
-      Bitmap bitmap = BitmapFactory.decodeStream(fileUtil.read(urlToFile
-          .get(url)));
-      BitmapDrawable drawable = new BitmapDrawable(context.getResources(),
-          bitmap);
-      imageMap.put(url, drawable);
-      return true;
-    } catch (FileNotFoundException e) {
-      urlToFile.remove(url);
-      return false;
-    }
+          if (o.outWidth <= 0 || o.outHeight <= 0) {
+            throw new FileNotFoundException();
+          }
+
+          // find the scale at which we still get minimum IMAGE_SIZE pixels in
+          // one dimension (must be power of 2)
+          int dim = o.outWidth > o.outHeight ? o.outWidth : o.outHeight;
+          int scale = 1;
+          while ((dim >>= 1) > IMAGE_SIZE) {
+            scale++;
+          }
+
+          // decode and put into imagemap
+          BitmapFactory.Options o2 = new BitmapFactory.Options();
+          o2.inSampleSize = scale;
+
+          Bitmap bitmap = BitmapFactory.decodeStream(
+              fileUtil.read(urlToFile.get(url)), null, o2);
+          BitmapDrawable drawable = new BitmapDrawable(context.getResources(),
+              bitmap);
+          imageMap.put(url, drawable);
+          return true;
+        } catch (FileNotFoundException e) {
+          urlToFile.remove(url);
+          return false;
+        } catch (OutOfMemoryError e) {
+          urlToFile.remove(url);
+          return false;
+        }
+      }
+
+      @Override
+      public void onPostExecute(Boolean success) {
+        processingUrls.remove(url);
+        if (success) {
+          eventBus.fireEvent(new NewImageEvent(url));
+        }
+      }
+    }.execute(null, null);
   }
 
   /**
@@ -164,6 +186,7 @@ public class ImageCache {
     Bitmap icon = BitmapFactory.decodeResource(context.getResources(),
         R.drawable.logo);
     defaultIcon = new BitmapDrawable(context.getResources(), icon);
+    load();
   }
 
   public void save() {
@@ -179,7 +202,7 @@ public class ImageCache {
   }
 
   @SuppressWarnings("unchecked")
-  public void load() {
+  private void load() {
     try {
       FileInputStream fis = configFileUtil
           .read(IMAGECACHE_FILENAME);
@@ -189,17 +212,18 @@ public class ImageCache {
     } catch (IOException e) {
       // on failure: assume no cache
       setImages(new HashMap<String, String>());
+      File f = configFileUtil.resolveFile(IMAGECACHE_FILENAME);
+      if (f.exists()) {
+        f.delete();
+      }
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
     }
   }
 
   private void setImages(Map<String, String> newImages) {
-    imageMap.clear();
     urlToFile.clear();
-    for (Map.Entry<String, String> entry : newImages.entrySet()) {
-      notifyNewImage(entry.getKey(), entry.getValue());
-    }
+    urlToFile.putAll(newImages);
   }
 
   public BitmapDrawable getDefaultIcon() {
