@@ -3,6 +3,8 @@ Knufficast
 
 Knufficast Podcast client (Podcatcher) for Android
 
+Available on Google Play: https://play.google.com/store/apps/details?id=de.knufficast
+
 License
 ==========
 Copyright 2012 Crazywater
