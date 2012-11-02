@@ -91,9 +91,12 @@ public class ImageCache {
     }
     if (urlToFile.containsKey(url)) {
       if (imageMap.get(url) == null) {
-        insertDrawable(url);
-        return getDefaultIcon();
+        return insertDrawable(url);
       } else {
+        if (imageMap.get(url).getBitmap().isRecycled()) {
+          imageMap.remove(url);
+          return insertDrawable(url);
+        }
         return imageMap.get(url);
       }
     }
@@ -126,7 +129,7 @@ public class ImageCache {
     return getDefaultIcon();
   }
 
-  private void insertDrawable(final String url) {
+  private BitmapDrawable insertDrawable(final String url) {
     processingUrls.add(url);
     new AsyncTask<Void, Void, Boolean>() {
       @Override
@@ -177,6 +180,7 @@ public class ImageCache {
         }
       }
     }.execute(null, null);
+    return getDefaultIcon();
   }
 
   /**
