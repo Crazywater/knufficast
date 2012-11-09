@@ -135,6 +135,8 @@ public class DownloadTask extends AsyncTask<String, Long, String> {
         // check content length
         int contentLength = connection.getContentLength();
         if (!(contentLength > 0)) {
+          input.close();
+          output.close();
           throw new RuntimeException(ERROR_CONTENT_LENGTH);
         }
   
