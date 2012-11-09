@@ -74,6 +74,7 @@
     <string name="episode_progress_listened">listened</string>
     <string name="episode_progress_flattred">flattred</string>
     <string name="internal_flattr_authurl">https://flattr.com/oauth/authorize?response_type=code&amp;client_id=0XW1mQCZ4t6sFMOwe3NWHIDTBwQGGi6x&amp;redirect_uri=knufficastoauth://&amp;scope=flattr</string>
+    <string name="description_play_button">Play/Pause</string>
     <string name="description_feed_icon">Feed Icon</string>
     <string name="description_episode_icon">Episode Icon</string>
 </resources>

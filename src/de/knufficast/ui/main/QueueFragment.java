@@ -23,7 +23,7 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -58,7 +58,7 @@ public class QueueFragment extends BaseFragment implements
 
   private SeekBar seekBar;
   private DnDListView list;
-  private Button playButton;
+  private ImageButton playButton;
   private TextView elapsedTime;
   private TextView totalTime;
 
@@ -234,7 +234,7 @@ public class QueueFragment extends BaseFragment implements
   public void setPlayButtonPlaying(boolean playing) {
     int id = playing ? android.R.drawable.ic_media_pause
         : android.R.drawable.ic_media_play;
-    playButton.setBackgroundDrawable(getView().getResources().getDrawable(id));
+    playButton.setImageResource(id);
   }
 
   /**
