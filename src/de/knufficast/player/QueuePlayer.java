@@ -47,6 +47,8 @@ import de.knufficast.util.PollingThread;
  */
 public class QueuePlayer {
   private static final long UI_UPDATE_INTERVAL = 1000; // ms
+  public static final int FORWARD_MS = 30 * 1000;
+  public static final int REWIND_MS = 30 * 1000;
   private final Queue queue;
   private final EventBus eventBus;
   private final Context context;
@@ -306,5 +308,13 @@ public class QueuePlayer {
       return player.isPlaying();
     }
     return false;
+  }
+
+  public void rewind() {
+    player.seekTo(player.getCurrentPosition() - REWIND_MS);
+  }
+
+  public void fastForward() {
+    player.seekTo(player.getCurrentPosition() + FORWARD_MS);
   }
 }

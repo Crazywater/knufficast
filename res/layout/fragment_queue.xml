@@ -5,19 +5,6 @@
     android:orientation="vertical"
     android:splitMotionEvents="false" >
 
-    <!--
-         <com.commonsware.cwac.tlv.TouchListView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tlv="http://schemas.android.com/apk/res/de.knufficast"
-        android:id="@+id/queue_episode_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:splitMotionEvents="true"
-        tlv:dragndrop_background="@android:color/background_light"
-        tlv:grabber="@+id/grabber_imageview"
-        tlv:remove_mode="fling" />
-    -->
-
     <de.knufficast.ui.DnDListView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/queue_episode_list"
@@ -54,13 +41,35 @@
 
             <ImageButton
                 android:id="@+id/queue_play_button"
+                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
-                style="?android:attr/borderlessButtonStyle" 
                 android:contentDescription="@string/description_play_button"
                 android:scaleType="fitXY" />
+
+            <ImageButton
+                android:id="@+id/queue_rewind_button"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="false"
+                android:layout_centerVertical="true"
+                android:layout_toLeftOf="@id/queue_play_button"
+                android:contentDescription="@string/description_rewind_button"
+                android:src="@android:drawable/ic_media_rew" />
+
+            <ImageButton
+                android:id="@+id/queue_fast_forward_button"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="false"
+                android:layout_centerVertical="true"
+                android:layout_toRightOf="@id/queue_play_button"
+                android:contentDescription="@string/description_fast_forward_button"
+                android:src="@android:drawable/ic_media_ff" />
 
             <TextView
                 android:id="@+id/queue_time_total"

@@ -39,6 +39,7 @@ import de.knufficast.events.PlayerStateChangeEvent;
 import de.knufficast.events.QueueChangedEvent;
 import de.knufficast.logic.db.DBEpisode;
 import de.knufficast.logic.db.Queue;
+import de.knufficast.player.QueuePlayer;
 import de.knufficast.ui.BaseFragment;
 import de.knufficast.ui.DnDListView;
 import de.knufficast.util.TimeUtil;
@@ -59,6 +60,8 @@ public class QueueFragment extends BaseFragment implements
   private SeekBar seekBar;
   private DnDListView list;
   private ImageButton playButton;
+  private ImageButton rewButton;
+  private ImageButton ffButton;
   private TextView elapsedTime;
   private TextView totalTime;
 
@@ -174,6 +177,8 @@ public class QueueFragment extends BaseFragment implements
     super.onStart();
     // find views
     playButton = findView(R.id.queue_play_button);
+    rewButton = findView(R.id.queue_rewind_button);
+    ffButton = findView(R.id.queue_fast_forward_button);
     list = findView(R.id.queue_episode_list);
     seekBar = findView(R.id.queue_seek_bar);
     elapsedTime = findView(R.id.queue_time_elapsed);
@@ -196,6 +201,25 @@ public class QueueFragment extends BaseFragment implements
       @Override
       public void onClick(View v) {
         presenter.playClicked();
+      }
+    });
+    ffButton.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        // shortcut for immediate UI response
+        int setTo = Math.min(seekBar.getMax(), seekBar.getProgress()
+            + QueuePlayer.FORWARD_MS);
+        setSeekbar(setTo, seekBar.getMax());
+        presenter.fastForwardClicked();
+      }
+    });
+    rewButton.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        // shortcut for immediate UI response
+        int setTo = Math.max(0, seekBar.getProgress() - QueuePlayer.REWIND_MS);
+        setSeekbar(setTo, seekBar.getMax());
+        presenter.rewindClicked();
       }
     });
     seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
@@ -285,6 +309,8 @@ public class QueueFragment extends BaseFragment implements
    */
   private void setControlsEnabled(boolean enabled) {
     playButton.setEnabled(enabled);
+    ffButton.setEnabled(enabled);
+    rewButton.setEnabled(enabled);
     seekBar.setEnabled(enabled);
     int visibility = enabled ? View.VISIBLE : View.GONE;
     elapsedTime.setVisibility(visibility);
@@ -300,6 +326,8 @@ public class QueueFragment extends BaseFragment implements
   public interface Presenter {
     void episodeClicked(DBEpisode episode);
     void playClicked();
+    void rewindClicked();
+    void fastForwardClicked();
     void seekTo(int progress);
     void moveEpisode(DBEpisode episode, int to);
     void removeEpisode(DBEpisode episode);

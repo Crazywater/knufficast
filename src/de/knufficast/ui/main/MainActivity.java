@@ -214,6 +214,16 @@ public class MainActivity extends FragmentActivity implements
   }
 
   @Override
+  public void rewindClicked() {
+    queuePlayer.rewind();
+  }
+
+  @Override
+  public void fastForwardClicked() {
+    queuePlayer.fastForward();
+  }
+
+  @Override
   public void seekTo(int progress) {
     queuePlayer.seekTo(progress);
   }
