@@ -96,7 +96,7 @@ public class QueueFragment extends BaseFragment implements
   private final Listener<EpisodeDownloadStateEvent> episodeDownloadStateListener = new Listener<EpisodeDownloadStateEvent>() {
     @Override
     public void onEvent(EpisodeDownloadStateEvent event) {
-      redrawQueue();
+      updateQueue();
     }
   };
   private final Listener<EpisodeDownloadProgressEvent> episodeDownloadProgressListener = new Listener<EpisodeDownloadProgressEvent>() {
@@ -105,7 +105,7 @@ public class QueueFragment extends BaseFragment implements
       if (updatingDownloads) {
         for (DBEpisode ep : ourQueue) {
           if (ep.getId() == event.getIdentifier()) {
-            redrawQueue();
+            updateQueue();
             break;
           }
         }
@@ -115,12 +115,7 @@ public class QueueFragment extends BaseFragment implements
   private final Listener<NewImageEvent> newImageListener = new Listener<NewImageEvent>() {
     @Override
     public void onEvent(NewImageEvent event) {
-      getActivity().runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          episodesAdapter.notifyDataSetChanged();
-        }
-      });
+      redrawQueue();
     }
   };
 
