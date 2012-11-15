@@ -40,8 +40,9 @@ public class NotificationAreaController {
   }
 
   public void register(DBEpisode episode) {
-    PendingIntent pi = PendingIntent.getActivity(context, 0,
-        new Intent(context, MainActivity.class),
+    Intent intent = new Intent(context, MainActivity.class);
+    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    PendingIntent pi = PendingIntent.getActivity(context, 0, intent,
         PendingIntent.FLAG_UPDATE_CURRENT);
 
     String title = episode.getTitle();
