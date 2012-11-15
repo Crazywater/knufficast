@@ -77,6 +77,28 @@ public class SearchFeedActivity extends Activity implements
       addFeed(searchResults.get(position).getFeedUrl());
     }
   };
+  
+  private final OnQueryTextListener queryListener = new OnQueryTextListener() {
+    @Override
+    public boolean onQueryTextChange(String newText) {
+      return false;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+      String input = searchView.getQuery().toString();
+      if (!"".equals(input)) {
+        if (input.startsWith("http://") || input.startsWith("https://")
+            || input.startsWith("www.")) {
+          addFeed(input);
+        } else {
+          searchProgress.setVisibility(View.VISIBLE);
+          podcastSearch.search(input, searchCallback);
+        }
+      }
+      return true;
+    }
+  };
 
   private SearchResultsAdapter searchResultsAdapter;
   private EventBus eventBus;
@@ -114,7 +136,6 @@ public class SearchFeedActivity extends Activity implements
     setContentView(R.layout.activity_feed_search);
 
     searchProgress = (ProgressBar) findViewById(R.id.add_feed_progress);
-    searchView = (SearchView) findViewById(R.id.add_feed_search);
     searchResultsList = (ListView) findViewById(R.id.add_feed_search_results);
 
     searchResultsAdapter = new SearchResultsAdapter(this,
@@ -127,33 +148,6 @@ public class SearchFeedActivity extends Activity implements
   @Override
   public void onStart() {
     super.onStart();
-
-    Uri uri = getIntent().getData();
-    if (uri != null) {
-      searchView.setQuery(uri.toString(), true);
-    }
-
-    searchView.setOnQueryTextListener(new OnQueryTextListener() {
-      @Override
-      public boolean onQueryTextChange(String newText) {
-        return false;
-      }
-
-      @Override
-      public boolean onQueryTextSubmit(String query) {
-        String input = searchView.getQuery().toString();
-        if (!"".equals(input)) {
-          if (input.startsWith("http://") || input.startsWith("https://")
-              || input.startsWith("www.")) {
-            addFeed(input);
-          } else {
-            searchProgress.setVisibility(View.VISIBLE);
-            podcastSearch.search(input, searchCallback);
-          }
-        }
-        return true;
-      }
-    });
 
     eventBus = App.get().getEventBus();
     eventBus.addListener(NewImageEvent.class, newImageListener);
@@ -199,6 +193,18 @@ public class SearchFeedActivity extends Activity implements
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.activity_feed_search, menu);
+
+    searchView = (SearchView) menu.findItem(R.id.add_feed_search)
+        .getActionView();
+
+    Uri uri = getIntent().getData();
+    if (uri != null) {
+      searchView.setQuery(uri.toString(), true);
+    }
+
+    searchView.setOnQueryTextListener(queryListener);
+    searchView.setIconifiedByDefault(false);
+    searchView.requestFocus();
     return true;
   }
 

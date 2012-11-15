@@ -15,15 +15,6 @@
             android:layout_weight="0.1"
             android:layout_height="match_parent"
             android:visibility="gone" />
-        
-        <SearchView
-            android:id="@+id/add_feed_search"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:iconifiedByDefault="false"
-            android:queryHint="@string/search_feed_hint" >
-        </SearchView>
     </LinearLayout>
 
     <ListView
