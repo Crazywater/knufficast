@@ -39,6 +39,8 @@ import android.util.Log;
  * 
  */
 public class Database {
+  private final Map<ColId, String> cache = new ConcurrentHashMap<ColId, String>();
+
   private final SQLiteHelper dbHelper;
   private final DBUpdater dbUpdater;
   private SQLiteDatabase database;
@@ -68,8 +70,6 @@ public class Database {
       return table.hashCode() ^ column.hashCode() ^ Long.valueOf(id).hashCode();
     }
   }
-
-  private Map<ColId, String> cache = new ConcurrentHashMap<ColId, String>();
 
   public Database(Context context) {
     dbHelper = new SQLiteHelper(context);

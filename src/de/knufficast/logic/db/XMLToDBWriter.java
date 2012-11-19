@@ -71,6 +71,11 @@ public class XMLToDBWriter {
         feed = createFeed(tempFeed);
       } else {
         feed = new DBFeed(feedIds.get(0));
+        // update the etag
+        String eTag = tempFeed.getETag();
+        if (eTag != null) {
+          feed.setETag(eTag);
+        }
       }
       List<XMLEpisode> newEpisodes = new ArrayList<XMLEpisode>();
       for (XMLEpisode tempEpisode : tempFeed.getEpisodes()) {
