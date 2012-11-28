@@ -45,12 +45,17 @@
 
                 <data android:scheme="knufficastoauth" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MANAGE_NETWORK_USAGE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
 
             <category android:name="android.intent.category.PREFERENCE" />
         </activity>
         <activity
             android:name=".ui.search.SearchFeedActivity"
-            android:label="@string/title_activity_feed_search">
+            android:label="@string/title_activity_feed_search" >
             <intent-filter>
                 <action
                     android:name="android.intent.action.VIEW"
