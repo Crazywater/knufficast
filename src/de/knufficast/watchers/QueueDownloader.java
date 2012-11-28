@@ -18,6 +18,7 @@ package de.knufficast.watchers;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -66,6 +67,13 @@ public class QueueDownloader {
       instance = new QueueDownloader(App.get());
     }
     return instance;
+  }
+
+  public void cancelDownloads() {
+    for (Entry<DBEpisode, DownloadTask> entry : downloadTasks.entrySet()) {
+      entry.getValue().cancel(true);
+      entry.getKey().setDownloadState(DownloadState.PAUSED);
+    }
   }
 
   public void restartDownloads() {

@@ -113,6 +113,10 @@ public class UpdaterService extends IntentService {
     QueueDownloader.get().restartDownloads();
   }
 
+  private void cancelDownloads() {
+    QueueDownloader.get().cancelDownloads();
+  }
+
   private void refresh(Configuration config, DBFeed feed) throws IOException,
   XmlPullParserException {
     boolean needsUpdate = true;
@@ -163,6 +167,9 @@ public class UpdaterService extends IntentService {
     }
     if (netUtil.isOnline() && config.autoRetry()) {
       retryDownloads();
+    }
+    if (!netUtil.isOnWifi() && config.downloadNeedsWifi()) {
+      cancelDownloads();
     }
   }
 
