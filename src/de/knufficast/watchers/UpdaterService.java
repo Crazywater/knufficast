@@ -153,8 +153,7 @@ public class UpdaterService extends IntentService {
     if (nowTime - config.getLastUpdate() >= config.getUpdateInterval()) {
       boolean refreshSuccessful = netUtil.isOnline();
       if (netUtil.isOnline()) {
-        if (!App.get().getConfiguration().refreshNeedsWifi()
-            || netUtil.isOnWifi()) {
+        if (!config.refreshNeedsWifi() || netUtil.isOnWifi()) {
           refreshSuccessful = refreshAll();
         } else {
           refreshSuccessful = false;

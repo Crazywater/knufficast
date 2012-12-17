@@ -110,8 +110,9 @@ public class Configuration {
    * Whether refreshes need WiFi connection.
    */
   public boolean refreshNeedsWifi() {
-    return getSharedPreferences().getBoolean("pref_key_refresh_needs_wifi",
-        false);
+    boolean result = getSharedPreferences().getBoolean(
+        "pref_key_update_needs_wifi", false);
+    return result;
   }
 
   /**
