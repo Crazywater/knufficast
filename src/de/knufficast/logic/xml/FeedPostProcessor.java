@@ -36,7 +36,8 @@ import de.knufficast.util.SetUtil;
 public class FeedPostProcessor extends XmlParser {
   private static final Set<String> whitelist = SetUtil.hash("p", "a", "li",
       "ol", "ul", "span", "div", "i", "u", "b", "strong", "em", "blockquote",
-      "center");
+      "center", "bdi", "bdo", "br", "cite", "code", "hr", "q", "small", "sub",
+      "sup");
 
   private XMLEpisode episode;
   private StringBuilder stringBuilder;
