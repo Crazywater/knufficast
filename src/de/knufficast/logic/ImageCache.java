@@ -93,7 +93,9 @@ public class ImageCache {
       if (imageMap.get(url) == null) {
         return insertDrawable(url);
       } else {
-        if (imageMap.get(url).getBitmap().isRecycled()) {
+        BitmapDrawable drawable = imageMap.get(url);
+        // extra-check because bitmaps get recycled accidentally
+        if (drawable.getBitmap() != null && drawable.getBitmap().isRecycled()) {
           imageMap.remove(url);
           return insertDrawable(url);
         }
