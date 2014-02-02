@@ -39,7 +39,7 @@ import de.knufficast.util.HttpUtil;
  * 
  */
 public class FlattrApi {
-  private static final IFlattrConstants CONSTANTS = new FlattrConstants();
+  private static final IFlattrConstants CONSTANTS = null;
   private static final String LOGIN_URL = "https://flattr.com/oauth/token";
   private static final String LOOKUP_URL = "https://api.flattr.com/rest/v2/things/lookup/?url=%s";
   private static final String FLATTR_URL = "https://api.flattr.com/rest/v2/flattr";
