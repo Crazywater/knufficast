@@ -1,0 +1,12 @@
+#Build system
+.gradle
+
+#InteliJ IDEA / Android Studio
+.idea
+*.iml
+
+#Macfag stuff
+.DS_Store
+
+#Generated files
+local.properties
